@@ -109,16 +109,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .sec-hdr{display:flex;align-items:baseline;gap:12px;margin-bottom:2rem}
 .sec-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;color:var(--txt)}
 .sec-line{flex:1;height:1px;background:linear-gradient(to right,var(--pk3),transparent)}
-.tgrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  justify-content: center;
-}
-.tcard {
-  flex: 1 1 calc(20% - 1.5rem); /* 5 per row */
-  max-width: calc(20% - 1.5rem);
-}
+.tgrid{display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:center}
+.tcard{flex:1 1 260px;max-width:320px;min-width:0}
 .tcard{background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1);border:1px solid rgba(232,24,109,0.07);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1),box-shadow 0.32s cubic-bezier(0.4,0,0.2,1);animation:fadeUp 0.5s ease both;position:relative}
 .tcard:hover{transform:translateY(-8px) scale(1.012);box-shadow:var(--sh3)}
 .tcard-img-wrap{position:relative;height:210px;overflow:hidden;background:var(--pk4)}
@@ -215,9 +207,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .flinks{display:flex;justify-content:center;gap:2rem;margin:1.2rem 0;flex-wrap:wrap}
 .flink{color:rgba(255,255,255,0.4);transition:color 0.2s;text-decoration:none;cursor:pointer;font-size:0.82rem}
 .flink:hover{color:var(--pk3)}
-.tgrid{display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:center}
-.tcard{flex:1 1 260px;max-width:320px;min-width:0}
-
 @media(max-width:1200px){.tcard{flex:1 1 220px;max-width:280px}}
 @media(max-width:768px){.tcard{flex:1 1 calc(50% - 0.75rem);max-width:calc(50% - 0.75rem)}}
 @media(max-width:480px){.tcard{flex:1 1 100%;max-width:100%}}
@@ -226,10 +215,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
   .hero{padding:3.5rem 1rem 3rem}
   .hero-stats{gap:1.5rem}
   .sep{display:none}
-  
   .fbar{padding:0.7rem 1rem}
   .main{padding:2rem 1rem 3rem}
-  .tgrid{grid-template-columns:1fr}
   .adm{padding:1rem}
   .adm-hdr{padding:1.2rem}
   .adm-tabs{flex-direction:column}
@@ -275,11 +262,7 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay }) {
     <div className="tcard" style={{ animationDelay: `${delay}ms`, opacity: !tpl.is_active && isAdmin ? 0.58 : 1 }}>
       <div className="tcard-img-wrap">
         {isVideo ? (
-          <video
-            src={tpl.image}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            autoPlay muted loop playsInline
-          />
+          <video src={tpl.image} style={{ width: "100%", height: "100%", objectFit: "cover" }} autoPlay muted loop playsInline />
         ) : (
           <img className="tcard-img" src={tpl.image} alt={tpl.title}
             onError={e => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=420&fit=crop"; }} />
@@ -300,15 +283,9 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay }) {
         <div className="tcard-title">{tpl.title}</div>
         <div className="tcard-price">₹{tpl.price.toLocaleString()} <sub>/ design</sub></div>
         <div className="tcard-btns">
-          <a className="ctab cwa" href={`https://wa.me/${WA}?text=${waMsg}`} target="_blank" rel="noreferrer">
-            <WaIcon />WhatsApp
-          </a>
-          <a className="ctab cml" href={`mailto:${MAIL}?subject=Template Inquiry - ${tpl.title}&body=${mlBody}`}>
-            <MailIcon />Email
-          </a>
-          <a className="ctab cig" href={IG} target="_blank" rel="noreferrer">
-            <IgIcon />Instagram
-          </a>
+          <a className="ctab cwa" href={`https://wa.me/${WA}?text=${waMsg}`} target="_blank" rel="noreferrer"><WaIcon />WhatsApp</a>
+          <a className="ctab cml" href={`mailto:${MAIL}?subject=Template Inquiry - ${tpl.title}&body=${mlBody}`}><MailIcon />Email</a>
+          <a className="ctab cig" href={IG} target="_blank" rel="noreferrer"><IgIcon />Instagram</a>
         </div>
       </div>
     </div>
@@ -324,9 +301,7 @@ function LoginModal({ onClose, onLogin }) {
   const [loading, setLoading] = useState(false);
 
   const handleEmailChange = (val) => {
-    setEmail(val);
-    setErr("");
-    setShowPass(val === _A.e);
+    setEmail(val); setErr(""); setShowPass(val === _A.e);
   };
 
   const submit = () => {
@@ -398,11 +373,7 @@ function TplForm({ tpl, onClose, onSave }) {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      const base64 = ev.target.result;
-      set("image", base64);
-      setPreview(base64);
-    };
+    reader.onload = (ev) => { const b = ev.target.result; set("image", b); setPreview(b); };
     reader.readAsDataURL(file);
   };
 
@@ -439,41 +410,25 @@ function TplForm({ tpl, onClose, onSave }) {
             <label className="flabel">Price (₹) *</label>
             <input className="fi" type="number" placeholder="999" value={f.price} onChange={e => set("price", e.target.value)} />
           </div>
-
-          {/* ── File Upload ── */}
           <div className="fg" style={{ gridColumn: "1/-1" }}>
             <label className="flabel">Image / Video *</label>
-            <input
-              className="fi"
-              type="file"
-              accept="image/*,video/*"
-              onChange={handleFile}
-              style={{ padding: "7px 10px", cursor: "pointer" }}
-            />
+            <input className="fi" type="file" accept="image/*,video/*" onChange={handleFile} style={{ padding: "7px 10px", cursor: "pointer" }} />
             {tpl?.image && !preview.startsWith("data:") && (
-              <div style={{ fontSize: "0.75rem", color: "var(--txt3)", marginTop: 4 }}>
-                No new file chosen — existing media will be kept.
-              </div>
+              <div style={{ fontSize: "0.75rem", color: "var(--txt3)", marginTop: 4 }}>No new file chosen — existing media will be kept.</div>
             )}
           </div>
-
-          {/* ── Preview ── */}
           {preview && (
             <div style={{ gridColumn: "1/-1", borderRadius: 10, overflow: "hidden", border: "1.5px solid var(--pk3)", maxHeight: 180 }}>
-              {isVideo ? (
-                <video src={preview} controls style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
-              ) : (
-                <img src={preview} alt="Preview" style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
-              )}
+              {isVideo
+                ? <video src={preview} controls style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
+                : <img src={preview} alt="Preview" style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
+              }
             </div>
           )}
-
           <div className="fg" style={{ gridColumn: "1/-1", display: "flex", alignItems: "center", gap: 10 }}>
             <input type="checkbox" id="act" checked={f.is_active} onChange={e => set("is_active", e.target.checked)}
               style={{ accentColor: "var(--pk)", width: 16, height: 16, cursor: "pointer" }} />
-            <label htmlFor="act" style={{ fontSize: "0.88rem", color: "var(--txt2)", cursor: "pointer", fontWeight: 500 }}>
-              Active — visible to all users
-            </label>
+            <label htmlFor="act" style={{ fontSize: "0.88rem", color: "var(--txt2)", cursor: "pointer", fontWeight: 500 }}>Active — visible to all users</label>
           </div>
         </div>
         {err && <div className="errmsg">⚠️ {err}</div>}
@@ -488,7 +443,26 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
   const [tab, setTab] = useState("templates");
   const [showForm, setShowForm] = useState(false);
   const [editTpl, setEditTpl] = useState(null);
-  const users = getUsers();
+  const [users, setUsers] = useState(getUsers); // ← React state for users
+
+  // Reload when tab switches
+  useEffect(() => {
+    setUsers(getUsers());
+  }, [tab]);
+
+  // Real-time sync from other browser tabs
+  useEffect(() => {
+    const sync = () => setUsers(getUsers());
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
+
+  // Poll every 2s to catch same-tab logins (storage event won't fire for same tab)
+  useEffect(() => {
+    const interval = setInterval(() => setUsers(getUsers()), 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   const total = templates.length;
   const active = templates.filter(t => t.is_active).length;
   const bycat = c => templates.filter(t => t.category === c).length;
@@ -613,13 +587,8 @@ function HomePage({ templates, session, isAdmin, onEdit, onDelete, onToggle, onL
     <>
       <section className="hero">
         <div className="hero-tag">✦ Premium Digital Invitations ✦</div>
-        <h1 className="hero-h1">
-          Beautiful <em>Invitations</em><br />
-          for Every <span className="gold-word">Celebration</span>
-        </h1>
-        <p className="hero-p">
-          Handcrafted digital invitation designs for weddings, housewarmings &amp; birthdays — share the joy, beautifully.
-        </p>
+        <h1 className="hero-h1">Beautiful <em>Invitations</em><br />for Every <span className="gold-word">Celebration</span></h1>
+        <p className="hero-p">Handcrafted digital invitation designs for weddings, housewarmings &amp; birthdays — share the joy, beautifully.</p>
         <div className="hero-cta">
           {!session
             ? <button className="btn-hero primary" onClick={onLoginClick}>Browse Designs →</button>
@@ -665,9 +634,7 @@ function HomePage({ templates, session, isAdmin, onEdit, onDelete, onToggle, onL
         ) : (
           <>
             <div className="sec-hdr">
-              <h2 className="sec-title">
-                {cat === "all" ? "All Designs" : cats.find(c => c.k === cat)?.l.replace(/^.+ /, "") + " Designs"}
-              </h2>
+              <h2 className="sec-title">{cat === "all" ? "All Designs" : cats.find(c => c.k === cat)?.l.replace(/^.+ /, "") + " Designs"}</h2>
               <div className="sec-line" />
             </div>
             {shown.length === 0 ? (
@@ -679,10 +646,7 @@ function HomePage({ templates, session, isAdmin, onEdit, onDelete, onToggle, onL
               <div className="tgrid" id="tgrid">
                 {shown.map((tpl, i) => (
                   <TCard key={tpl.id} tpl={tpl} isAdmin={isAdmin} delay={i * 55}
-                    onEdit={t => setEditTpl(t)}
-                    onDelete={onDelete}
-                    onToggle={onToggle}
-                  />
+                    onEdit={t => setEditTpl(t)} onDelete={onDelete} onToggle={onToggle} />
                 ))}
               </div>
             )}
@@ -738,7 +702,6 @@ export default function App() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-
       <header className="hdr">
         <div className="hdr-in">
           <div className="logo" onClick={() => setPage("home")}>
