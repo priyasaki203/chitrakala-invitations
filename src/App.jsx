@@ -253,11 +253,21 @@ function useToast() {
 function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay }) {
   const waMsg = encodeURIComponent(`Hi, I'm interested in this invitation template: ${tpl.title}`);
   const mlBody = encodeURIComponent(`Hello,\n\nI'm interested in:\n\nTemplate: ${tpl.title}\nPrice: ₹${tpl.price}\n\nPlease share more details.\n\nThank you`);
+  const isVideo = tpl.image?.startsWith("data:video");
+
   return (
     <div className="tcard" style={{ animationDelay: `${delay}ms`, opacity: !tpl.is_active && isAdmin ? 0.58 : 1 }}>
       <div className="tcard-img-wrap">
-        <img className="tcard-img" src={tpl.image} alt={tpl.title}
-          onError={e => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=420&fit=crop"; }} />
+        {isVideo ? (
+          <video
+            src={tpl.image}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            autoPlay muted loop playsInline
+          />
+        ) : (
+          <img className="tcard-img" src={tpl.image} alt={tpl.title}
+            onError={e => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=420&fit=crop"; }} />
+        )}
         <div className="tcard-ov" />
         <span className="cat-badge">
           {tpl.category === "wedding" ? "💍 Wedding" : tpl.category === "housewarming" ? "🏡 Housewarming" : "🎂 Birthday"}
@@ -365,14 +375,29 @@ function TplForm({ tpl, onClose, onSave }) {
   const blank = { title: "", category: "wedding", price: "", image: "", is_active: true };
   const [f, setF] = useState(tpl ? { ...tpl } : blank);
   const [err, setErr] = useState("");
+  const [preview, setPreview] = useState(tpl?.image || "");
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
+
+  const handleFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target.result;
+      set("image", base64);
+      setPreview(base64);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const save = () => {
     if (!f.title.trim()) return setErr("Title is required.");
     if (!f.price || Number(f.price) <= 0) return setErr("Enter a valid price.");
-    if (!f.image.trim()) return setErr("Image URL is required.");
+    if (!f.image) return setErr("Please upload an image or video.");
     onSave({ ...f, price: Number(f.price), id: tpl?.id || Date.now() });
   };
+
+  const isVideo = preview?.startsWith("data:video");
 
   return (
     <div className="overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -398,13 +423,41 @@ function TplForm({ tpl, onClose, onSave }) {
             <label className="flabel">Price (₹) *</label>
             <input className="fi" type="number" placeholder="999" value={f.price} onChange={e => set("price", e.target.value)} />
           </div>
+
+          {/* ── File Upload ── */}
           <div className="fg" style={{ gridColumn: "1/-1" }}>
-            <label className="flabel">Image URL *</label>
-            <input className="fi" placeholder="https://images.unsplash.com/..." value={f.image} onChange={e => set("image", e.target.value)} />
+            <label className="flabel">Image / Video *</label>
+            <input
+              className="fi"
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFile}
+              style={{ padding: "7px 10px", cursor: "pointer" }}
+            />
+            {tpl?.image && !preview.startsWith("data:") && (
+              <div style={{ fontSize: "0.75rem", color: "var(--txt3)", marginTop: 4 }}>
+                No new file chosen — existing media will be kept.
+              </div>
+            )}
           </div>
+
+          {/* ── Preview ── */}
+          {preview && (
+            <div style={{ gridColumn: "1/-1", borderRadius: 10, overflow: "hidden", border: "1.5px solid var(--pk3)", maxHeight: 180 }}>
+              {isVideo ? (
+                <video src={preview} controls style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
+              ) : (
+                <img src={preview} alt="Preview" style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
+              )}
+            </div>
+          )}
+
           <div className="fg" style={{ gridColumn: "1/-1", display: "flex", alignItems: "center", gap: 10 }}>
-            <input type="checkbox" id="act" checked={f.is_active} onChange={e => set("is_active", e.target.checked)} style={{ accentColor: "var(--pk)", width: 16, height: 16, cursor: "pointer" }} />
-            <label htmlFor="act" style={{ fontSize: "0.88rem", color: "var(--txt2)", cursor: "pointer", fontWeight: 500 }}>Active — visible to all users</label>
+            <input type="checkbox" id="act" checked={f.is_active} onChange={e => set("is_active", e.target.checked)}
+              style={{ accentColor: "var(--pk)", width: 16, height: 16, cursor: "pointer" }} />
+            <label htmlFor="act" style={{ fontSize: "0.88rem", color: "var(--txt2)", cursor: "pointer", fontWeight: 500 }}>
+              Active — visible to all users
+            </label>
           </div>
         </div>
         {err && <div className="errmsg">⚠️ {err}</div>}
@@ -473,8 +526,12 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
               {templates.map(t => (
                 <tr key={t.id}>
                   <td>
-                    <img className="thumb" src={t.image} alt={t.title}
-                      onError={e => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=52&h=38&fit=crop"; }} />
+                    {t.image?.startsWith("data:video") ? (
+                      <video src={t.image} className="thumb" muted style={{ borderRadius: 8, border: "1px solid var(--pk3)" }} />
+                    ) : (
+                      <img className="thumb" src={t.image} alt={t.title}
+                        onError={e => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=52&h=38&fit=crop"; }} />
+                    )}
                   </td>
                   <td style={{ fontWeight: 600, maxWidth: 170 }}>{t.title}</td>
                   <td><span className={`bcat ${t.category === "wedding" ? "bw" : t.category === "housewarming" ? "bh" : "bb"}`}>{t.category}</span></td>
@@ -524,7 +581,6 @@ function HomePage({ templates, session, isAdmin, onEdit, onDelete, onToggle, onL
   const [editTpl, setEditTpl] = useState(null);
   const highPrice = Math.max(...templates.map(t => t.price), 2500);
 
-  // FIXED: ALL users see active templates; admin sees all (including inactive)
   const shown = templates
     .filter(t => isAdmin || t.is_active)
     .filter(t => cat === "all" || t.category === cat)
