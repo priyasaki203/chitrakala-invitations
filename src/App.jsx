@@ -215,11 +215,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .flinks{display:flex;justify-content:center;gap:2rem;margin:1.2rem 0;flex-wrap:wrap}
 .flink{color:rgba(255,255,255,0.4);transition:color 0.2s;text-decoration:none;cursor:pointer;font-size:0.82rem}
 .flink:hover{color:var(--pk3)}
+.tgrid{display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:center}
+.tcard{flex:1 1 260px;max-width:320px;min-width:0}
+
+@media(max-width:1200px){.tcard{flex:1 1 220px;max-width:280px}}
+@media(max-width:768px){.tcard{flex:1 1 calc(50% - 0.75rem);max-width:calc(50% - 0.75rem)}}
+@media(max-width:480px){.tcard{flex:1 1 100%;max-width:100%}}
 @media(max-width:680px){
   .hdr-in{padding:0 1rem}
   .hero{padding:3.5rem 1rem 3rem}
   .hero-stats{gap:1.5rem}
   .sep{display:none}
+  
   .fbar{padding:0.7rem 1rem}
   .main{padding:2rem 1rem 3rem}
   .tgrid{grid-template-columns:1fr}
