@@ -207,11 +207,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 /* ── CARD ── */
 .tcard{width:100%;background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1);border:1px solid rgba(232,24,109,0.07);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1),box-shadow 0.32s cubic-bezier(0.4,0,0.2,1);animation:fadeUp 0.5s ease both;position:relative}
 .tcard:hover{transform:translateY(-8px) scale(1.012);box-shadow:var(--sh3)}
-/* Fixed height on desktop, shorter on mobile so 2 cards fit nicely per row */
 .tcard-img-wrap{position:relative;height:210px;overflow:hidden;background:var(--pk4)}
 .tcard-img{width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
 .tcard:hover .tcard-img{transform:scale(1.09)}
-.tcard-vid-thumb{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ── VIDEO THUMBNAIL ── */
+/* FIX: Always displayed on both mobile and desktop. */
+/* pointer-events:none prevents the video from intercepting taps/clicks — */
+/* the parent div's onClick handles all interaction. */
+.tcard-vid-thumb{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  display:block;
+  pointer-events:none;
+}
+
 .tcard-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(26,10,18,0.55) 0%,transparent 55%);opacity:0;transition:opacity 0.3s;pointer-events:none}
 .tcard:hover .tcard-ov{opacity:1}
 .vid-badge{position:absolute;bottom:10px;left:12px;background:rgba(0,0,0,0.62);color:#fff;font-size:0.64rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:0.6px}
@@ -339,7 +350,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .spinner{width:38px;height:38px;border:3px solid var(--pk3);border-top-color:var(--pk);border-radius:50%;animation:spin 0.7s linear infinite}
 
 /* ── RESPONSIVE ── */
-/* Mobile: 2-column card grid, shorter card image */
 @media(max-width:600px){
   .tgrid{grid-template-columns:1fr 1fr;gap:0.75rem}
   .tcard-img-wrap{height:150px}
@@ -348,7 +358,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
   .tcard-price{font-size:1rem;margin-bottom:0.6rem}
   .ctab{font-size:0.6rem;padding:7px 2px}
 }
-/* Very small phones: single column */
 @media(max-width:340px){
   .tgrid{grid-template-columns:1fr}
   .tcard-img-wrap{height:190px}
@@ -391,7 +400,7 @@ function useToast() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  VIDEO CHOICE SHEET  — desktop only, gives user "Play Here" vs "Open in Browser"
+//  VIDEO CHOICE SHEET  — desktop only
 // ═══════════════════════════════════════════════════════════════════════════════
 function VideoChoiceDialog({ title, onClose, onPreview, onOpenInBrowser }) {
   useEffect(() => {
@@ -423,7 +432,7 @@ function VideoChoiceDialog({ title, onClose, onPreview, onOpenInBrowser }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  VIDEO PREVIEW MODAL  — full screen player, both desktop and mobile
+//  VIDEO PREVIEW MODAL  — full screen player
 // ═══════════════════════════════════════════════════════════════════════════════
 function VideoPreviewModal({ url, title, onClose }) {
   const videoRef            = useRef(null);
@@ -482,8 +491,18 @@ function VideoPreviewModal({ url, title, onClose }) {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  TEMPLATE CARD
-//  ▶ MOBILE  → one tap opens VideoPreviewModal directly (no extra step)
-//  ▶ DESKTOP → tap opens VideoChoiceDialog first (Play Here / Open in Browser)
+//
+//  FIX: The <video> thumbnail is now always rendered on both mobile and desktop.
+//  Previously, mobile showed a static gradient placeholder which caused a black
+//  screen. Now a real first-frame is shown everywhere.
+//
+//  Key details:
+//  - muted + playsInline + preload="metadata" on the thumbnail <video>
+//  - onLoadedMetadata sets currentTime = 0.1 to force first-frame paint
+//  - pointer-events:none on the <video> (.tcard-vid-thumb) so it never
+//    intercepts taps — the parent div onClick still fires correctly
+//  - The play button overlay (pink circle + label) sits above via z-index
+//  - No changes to modal behavior, click logic, or any other component
 // ═══════════════════════════════════════════════════════════════════════════════
 function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }) {
   const [videoMode, setVideoMode] = useState(null); // null | "choice" | "preview"
@@ -493,7 +512,7 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
 
   const handleCardClick = () => {
     if (!isVid) return;
-    // KEY FIX: mobile skips choice dialog → goes straight to full-screen player
+    // Mobile → straight to player; Desktop → choice sheet first
     setVideoMode(mobile ? "preview" : "choice");
   };
 
@@ -504,16 +523,34 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
 
           {isVid ? (
             <>
-              {/* Desktop: show actual video first-frame as thumbnail */}
-              {!mobile && (
-                <video className="tcard-vid-thumb" src={tpl.image} muted preload="metadata" playsInline
-                  onLoadedMetadata={(e) => { try { e.target.currentTime = 0.1; } catch {} }} />
-              )}
+              {/*
+                ── VIDEO THUMBNAIL ──────────────────────────────────────────
+                FIX: Always render <video> on both mobile and desktop.
 
-              {/* Play button overlay — same design on both mobile & desktop */}
+                - muted: required for browser autoplay policies (thumbnail only)
+                - playsInline: prevents iOS from hijacking into fullscreen
+                - preload="metadata": asks browser to load just enough to
+                  decode the first frame — minimal bandwidth cost
+                - onLoadedMetadata: seeks to 0.1s so the browser actually
+                  paints a visible frame (time=0 often stays black on mobile)
+                - pointer-events:none (.tcard-vid-thumb CSS): video element
+                  never captures taps/clicks, parent div onClick always fires
+              */}
+              <video
+                className="tcard-vid-thumb"
+                src={tpl.image}
+                muted
+                playsInline
+                preload="metadata"
+                onLoadedMetadata={(e) => {
+                  try { e.target.currentTime = 0.1; } catch (_) {}
+                }}
+              />
+
+              {/* Play button overlay — always on top via absolute positioning */}
               <div style={{
-                position: "absolute", inset: 0,
-                background: "linear-gradient(135deg,rgba(42,6,16,0.82) 0%,rgba(26,10,18,0.70) 45%,rgba(56,16,30,0.82) 100%)",
+                position: "absolute", inset: 0, zIndex: 1,
+                background: "linear-gradient(135deg,rgba(42,6,16,0.55) 0%,rgba(26,10,18,0.35) 45%,rgba(56,16,30,0.55) 100%)",
                 display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 10,
               }}>
                 <div style={{
@@ -522,24 +559,40 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
                   display: "flex", alignItems: "center", justifyContent: "center",
                   boxShadow: "0 6px 24px rgba(232,24,109,0.55)",
                 }}>
-                  <div style={{ width: 0, height: 0, borderTop: "12px solid transparent", borderBottom: "12px solid transparent", borderLeft: "20px solid #fff", marginLeft: 5 }} />
+                  <div style={{
+                    width: 0, height: 0,
+                    borderTop: "12px solid transparent",
+                    borderBottom: "12px solid transparent",
+                    borderLeft: "20px solid #fff",
+                    marginLeft: 5,
+                  }} />
                 </div>
-                <div style={{ fontSize: "0.67rem", color: "rgba(255,255,255,0.85)", fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase" }}>
+                <div style={{
+                  fontSize: "0.67rem", color: "rgba(255,255,255,0.9)",
+                  fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase",
+                }}>
                   {mobile ? "Tap to Play" : "Click to Play"}
                 </div>
               </div>
+
               <span className="vid-badge">▶ VIDEO</span>
             </>
           ) : (
             <>
-              <img className="tcard-img" src={tpl.image} alt={tpl.title}
-                onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=420&fit=crop"; }} />
+              <img
+                className="tcard-img"
+                src={tpl.image}
+                alt={tpl.title}
+                onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=420&fit=crop"; }}
+              />
               <div className="tcard-ov" />
             </>
           )}
 
           <span className="cat-badge">
-            {tpl.category === "wedding" ? "💍 Wedding" : tpl.category === "housewarming" ? "🏡 Housewarming" : "🎂 Birthday"}
+            {tpl.category === "wedding" ? "💍 Wedding"
+              : tpl.category === "housewarming" ? "🏡 Housewarming"
+              : "🎂 Birthday"}
           </span>
 
           {isAdmin && (
