@@ -28,7 +28,7 @@ const SUPABASE_URL  =
 
 const SUPABASE_ANON =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_ANON)
-    || "YOUR_ANON_KEY";                       // ← OPTION B: replace this
+    || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15ZW5qYmxqdHZsd3B0bHh6bGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTk1NzAsImV4cCI6MjA5MjA5NTU3MH0.zLEW6w3nZSViXMAvyuxR72HrhCIIuAkmBvTtV27Jv5Q";                       // ← OPTION B: replace this
 
 const EMAILJS_PUBLIC_KEY  = "sMgdbh9Kiv0o3szux";
 const EMAILJS_SERVICE_ID  = "service_fuq1yop";
