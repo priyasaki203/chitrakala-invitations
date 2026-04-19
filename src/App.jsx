@@ -2,184 +2,100 @@
 // npm install @supabase/supabase-js @emailjs/browser
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  STEP 1 — Fill in your own keys before running
-// ══════════════════════════════════════════════════════════════════════════════
-const SUPABASE_URL  = "https://myenjbljtvlwptlxzlhh.supabase.co";   // ← replace
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15ZW5qYmxqdHZsd3B0bHh6bGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTk1NzAsImV4cCI6MjA5MjA5NTU3MH0.zLEW6w3nZSViXMAvyuxR72HrhCIIuAkmBvTtV27Jv5Q";                       // ← replace
+const SUPABASE_URL  = "https://myenjbljtvlwptlxzlhh.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15ZW5qYmxqdHZsd3B0bHh6bGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTk1NzAsImV4cCI6MjA5MjA5NTU3MH0.zLEW6w3nZSViXMAvyuxR72HrhCIIuAkmBvTtV27Jv5Q";
 
-const EMAILJS_PUBLIC_KEY   = "sMgdbh9Kiv0o3szux";
-const EMAILJS_SERVICE_ID   = "service_fuq1yop";
-const EMAILJS_DEVICE_TPL   = "template_device_login";
-const EMAILJS_ENQUIRY_TPL  = "template_u46iezf";
+const EMAILJS_PUBLIC_KEY  = "sMgdbh9Kiv0o3szux";
+const EMAILJS_SERVICE_ID  = "service_fuq1yop";
+const EMAILJS_DEVICE_TPL  = "template_device_login";
+const EMAILJS_ENQUIRY_TPL = "template_u46iezf";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import emailjs from "@emailjs/browser";
 
-// ─── SUPABASE CLIENT ──────────────────────────────────────────────────────────
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
-
-// ─── EMAILJS INIT ─────────────────────────────────────────────────────────────
 emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
-// ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const _A   = { e: "priyasaki190@gmail.com", p: "priyasaki@9840" };
 const WA   = "919840903746";
 const MAIL = "priyasaki190@gmail.com";
 const IG   = "https://instagram.com/priyasaki__19";
 
-// ─── DEVICE INFO HELPER ───────────────────────────────────────────────────────
+// ─── HELPER: detect if URL is a video ────────────────────────────────────────
+// Works for Supabase Storage URLs like:
+//   https://xyz.supabase.co/storage/v1/object/public/templates-media/file.mp4
+function isVideoUrl(url) {
+  if (!url) return false;
+  if (url.startsWith("data:video")) return true;
+  return /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(url);
+}
+
 function getDeviceFingerprint() {
   return (navigator.userAgent || "unknown").substring(0, 120);
 }
 
-// ─── SESSION HELPERS ──────────────────────────────────────────────────────────
 const session = {
-  get: () => {
-    try {
-      const v = sessionStorage.getItem("ck_sess");
-      return v ? JSON.parse(v) : null;
-    } catch {
-      return null;
-    }
-  },
-  set: (s) => {
-    try {
-      sessionStorage.setItem("ck_sess", JSON.stringify(s));
-    } catch {}
-  },
-  del: () => {
-    try {
-      sessionStorage.removeItem("ck_sess");
-    } catch {}
-  },
+  get: () => { try { const v = sessionStorage.getItem("ck_sess"); return v ? JSON.parse(v) : null; } catch { return null; } },
+  set: (s)  => { try { sessionStorage.setItem("ck_sess", JSON.stringify(s)); } catch {} },
+  del: ()   => { try { sessionStorage.removeItem("ck_sess"); } catch {} },
 };
 
-// ─── EMAILJS HELPERS ──────────────────────────────────────────────────────────
 function sendEnquiryEmail(template, pushToast) {
   pushToast("📨 Sending enquiry email...");
-  emailjs
-    .send(EMAILJS_SERVICE_ID, EMAILJS_ENQUIRY_TPL, {
-      to_email:       MAIL,
-      template_title: template.title,
-      template_price: `₹${template.price.toLocaleString()}`,
-      from_name:      "Chitrakala Invitations",
-    })
-    .then(() => pushToast("✅ Email sent! We'll contact you soon."))
-    .catch((e) => {
-      console.error("EmailJS enquiry error:", e);
-      pushToast("❌ Email failed. Please try WhatsApp.");
-    });
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_ENQUIRY_TPL, {
+    to_email: MAIL, template_title: template.title,
+    template_price: `₹${template.price.toLocaleString()}`, from_name: "Chitrakala Invitations",
+  }).then(() => pushToast("✅ Email sent! We'll contact you soon."))
+    .catch(() => pushToast("❌ Email failed. Please try WhatsApp."));
 }
 
 function sendDeviceAlertEmail(userEmail, deviceInfo) {
-  emailjs
-    .send(EMAILJS_SERVICE_ID, EMAILJS_DEVICE_TPL, {
-      to_email:    userEmail,
-      user_name:   userEmail.split("@")[0],
-      device_info: deviceInfo,
-      login_time:  new Date().toLocaleString("en-IN"),
-      message:     "New login detected from another device",
-    })
-    .catch((e) => console.error("EmailJS device-alert error:", e));
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_DEVICE_TPL, {
+    to_email: userEmail, user_name: userEmail.split("@")[0],
+    device_info: deviceInfo, login_time: new Date().toLocaleString("en-IN"),
+    message: "New login detected from another device",
+  }).catch((e) => console.error("EmailJS device-alert error:", e));
 }
 
-// ─── SUPABASE: TEMPLATES ──────────────────────────────────────────────────────
 async function fetchTemplates(isAdmin = false) {
   let q = supabase.from("templates").select("*").order("created_at", { ascending: false });
   if (!isAdmin) q = q.eq("is_active", true);
   const { data, error } = await q;
-  if (error) {
-    console.error("fetchTemplates:", error.message);
-    return [];
-  }
+  if (error) { console.error("fetchTemplates:", error.message); return []; }
   return data;
 }
 
-// ─── SUPABASE STORAGE ─────────────────────────────────────────────────────────
-// Bucket name: "templates-media" — must be created in Supabase → Storage, set to Public
 const STORAGE_BUCKET = "templates-media";
 
 async function uploadMediaFile(file) {
   const ext      = file.name.split(".").pop();
   const filePath = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-
-  console.log("[upload] starting →", filePath, file.type, file.size, "bytes");
-
   const { error: uploadError } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .upload(filePath, file, { contentType: file.type, upsert: false });
-
-  if (uploadError) {
-    console.error("[upload] failed:", uploadError.message);
-    throw new Error("File upload failed: " + uploadError.message);
-  }
-
-  const { data: urlData } = supabase.storage
-    .from(STORAGE_BUCKET)
-    .getPublicUrl(filePath);
-
-  if (!urlData?.publicUrl) throw new Error("Could not get public URL for uploaded file.");
-
-  console.log("[upload] success →", urlData.publicUrl);
+    .from(STORAGE_BUCKET).upload(filePath, file, { contentType: file.type, upsert: false });
+  if (uploadError) throw new Error("File upload failed: " + uploadError.message);
+  const { data: urlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(filePath);
+  if (!urlData?.publicUrl) throw new Error("Could not get public URL.");
   return urlData.publicUrl;
 }
 
 async function insertTemplate(tpl) {
   let imageUrl = tpl.image;
-  if (tpl._file instanceof File) {
-    imageUrl = await uploadMediaFile(tpl._file);
-  }
-
-  console.log("[insertTemplate] inserting with imageUrl:", imageUrl?.substring(0, 80));
-
-  const { data, error } = await supabase
-    .from("templates")
-    .insert([{
-      title:     tpl.title,
-      category:  tpl.category,
-      price:     tpl.price,
-      image:     imageUrl,
-      is_active: tpl.is_active,
-    }])
-    .select()
-    .single();
-
-  if (error) {
-    console.error("[insertTemplate] error:", error.message, error.details, error.hint);
-    throw new Error(error.message);
-  }
-  console.log("[insertTemplate] done:", data.id);
+  if (tpl._file instanceof File) imageUrl = await uploadMediaFile(tpl._file);
+  const { data, error } = await supabase.from("templates")
+    .insert([{ title: tpl.title, category: tpl.category, price: tpl.price, image: imageUrl, is_active: tpl.is_active }])
+    .select().single();
+  if (error) throw new Error(error.message);
   return data;
 }
 
 async function updateTemplate(tpl) {
   let imageUrl = tpl.image;
-  if (tpl._file instanceof File) {
-    imageUrl = await uploadMediaFile(tpl._file);
-  }
-
-  console.log("[updateTemplate] id:", tpl.id, "imageUrl:", imageUrl?.substring(0, 80));
-
-  const { data, error } = await supabase
-    .from("templates")
-    .update({
-      title:     tpl.title,
-      category:  tpl.category,
-      price:     tpl.price,
-      image:     imageUrl,
-      is_active: tpl.is_active,
-    })
-    .eq("id", tpl.id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("[updateTemplate] error:", error.message, error.details, error.hint);
-    throw new Error(error.message);
-  }
-  console.log("[updateTemplate] done:", data.id);
+  if (tpl._file instanceof File) imageUrl = await uploadMediaFile(tpl._file);
+  const { data, error } = await supabase.from("templates")
+    .update({ title: tpl.title, category: tpl.category, price: tpl.price, image: imageUrl, is_active: tpl.is_active })
+    .eq("id", tpl.id).select().single();
+  if (error) throw new Error(error.message);
   return data;
 }
 
@@ -189,44 +105,25 @@ async function deleteTemplate(id) {
 }
 
 async function toggleTemplate(id, currentActive) {
-  const { data, error } = await supabase
-    .from("templates")
-    .update({ is_active: !currentActive })
-    .eq("id", id)
-    .select()
-    .single();
+  const { data, error } = await supabase.from("templates")
+    .update({ is_active: !currentActive }).eq("id", id).select().single();
   if (error) throw new Error(error.message);
   return data;
 }
 
-// ─── SUPABASE: USERS ──────────────────────────────────────────────────────────
 async function upsertUser(email, deviceInfo) {
-  const { data: existing } = await supabase
-    .from("users")
-    .select("*")
-    .eq("email", email)
-    .single();
-
-  const isNewDevice =
-    existing && existing.device_info && existing.device_info !== deviceInfo;
-
+  const { data: existing } = await supabase.from("users").select("*").eq("email", email).single();
+  const isNewDevice = existing && existing.device_info && existing.device_info !== deviceInfo;
   await supabase.from("users").upsert(
     { email, last_login: new Date().toISOString(), device_info: deviceInfo },
     { onConflict: "email" }
   );
-
   return { isNewDevice, previousDevice: existing?.device_info ?? null };
 }
 
 async function fetchUsers() {
-  const { data, error } = await supabase
-    .from("users")
-    .select("*")
-    .order("joined_at", { ascending: false });
-  if (error) {
-    console.error("fetchUsers:", error.message);
-    return [];
-  }
+  const { data, error } = await supabase.from("users").select("*").order("joined_at", { ascending: false });
+  if (error) { console.error("fetchUsers:", error.message); return []; }
   return data;
 }
 
@@ -253,7 +150,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 @keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-.hdr{background:rgba(255,255,255,0.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(232,24,109,0.10);position:sticky;top:0;z-index:200;box-shadow:0 2px 18px rgba(232,24,109,0.06)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.hdr{background:rgba(255,255,255,0.88);backdrop-filter:blur(18px);border-bottom:1px solid rgba(232,24,109,0.10);position:sticky;top:0;z-index:200;box-shadow:0 2px 18px rgba(232,24,109,0.06)}
 .hdr-in{max-width:1280px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:68px}
 .logo{display:flex;align-items:center;gap:11px;cursor:pointer;text-decoration:none}
 .logo-mark{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--pk),var(--pk2));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(232,24,109,0.35);animation:float 3s ease-in-out infinite}
@@ -267,6 +166,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .btn-nav.solid:hover{box-shadow:0 6px 24px rgba(232,24,109,0.45);transform:translateY(-1px)}
 .btn-nav.gold{background:linear-gradient(135deg,var(--gd),var(--gd2));color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(201,149,42,0.3)}
 .btn-nav.gold:hover{box-shadow:0 6px 22px rgba(201,149,42,0.45);transform:translateY(-1px)}
+
 .hero{background:linear-gradient(160deg,#fff7fb 0%,#fce8f3 40%,#fdf3dc 100%);padding:5.5rem 2rem 4.5rem;text-align:center;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;top:-60px;right:-80px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(232,24,109,0.07),transparent 70%);pointer-events:none}
 .hero::after{content:'';position:absolute;bottom:-40px;left:-60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(201,149,42,0.07),transparent 70%);pointer-events:none}
@@ -286,6 +186,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .hstat-n{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--pk);line-height:1}
 .hstat-l{font-size:0.73rem;text-transform:uppercase;letter-spacing:1px;color:var(--txt3);margin-top:3px}
 .sep{width:1px;background:linear-gradient(to bottom,transparent,var(--pk3),transparent);align-self:stretch}
+
 .fbar{background:rgba(255,255,255,0.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(232,24,109,0.07);position:sticky;top:68px;z-index:190;box-shadow:0 2px 12px rgba(232,24,109,0.03);padding:0.9rem 2rem}
 .fbar-in{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .fchip{padding:7px 20px;border-radius:var(--r3);font-size:0.83rem;font-weight:500;border:1.5px solid rgba(232,24,109,0.16);background:transparent;color:var(--txt2);cursor:pointer;transition:var(--tr);font-family:'DM Sans',sans-serif;white-space:nowrap}
@@ -296,38 +197,100 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .fprice input[type=range]{accent-color:var(--pk);width:110px;cursor:pointer}
 .fpval{font-size:0.82rem;font-weight:700;color:var(--pk);min-width:60px}
 .fcnt{font-size:0.78rem;color:var(--txt3);background:var(--pk4);padding:4px 12px;border-radius:var(--r3);font-weight:500;white-space:nowrap}
+
 .main{max-width:1280px;margin:0 auto;padding:2.5rem 2rem 4rem}
 .sec-hdr{display:flex;align-items:baseline;gap:12px;margin-bottom:2rem}
 .sec-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;color:var(--txt)}
 .sec-line{flex:1;height:1px;background:linear-gradient(to right,var(--pk3),transparent)}
 .tgrid{display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:center}
-.tcard{flex:1 1 260px;max-width:320px;min-width:0}
-.tcard{background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1);border:1px solid rgba(232,24,109,0.07);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1),box-shadow 0.32s cubic-bezier(0.4,0,0.2,1);animation:fadeUp 0.5s ease both;position:relative}
+
+/* ── CARD ── */
+.tcard{flex:1 1 260px;max-width:320px;min-width:0;background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1);border:1px solid rgba(232,24,109,0.07);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1),box-shadow 0.32s cubic-bezier(0.4,0,0.2,1);animation:fadeUp 0.5s ease both;position:relative}
 .tcard:hover{transform:translateY(-8px) scale(1.012);box-shadow:var(--sh3)}
 .tcard-img-wrap{position:relative;height:210px;overflow:hidden;background:var(--pk4)}
 .tcard-img{width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
 .tcard:hover .tcard-img{transform:scale(1.09)}
-.tcard-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(26,10,18,0.55) 0%,transparent 55%);opacity:0;transition:opacity 0.3s}
+
+/* Video thumbnail inside card */
+.tcard-vid-thumb{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
+.tcard:hover .tcard-vid-thumb{transform:scale(1.09)}
+
+/* Dark gradient overlay on hover */
+.tcard-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(26,10,18,0.55) 0%,transparent 55%);opacity:0;transition:opacity 0.3s;pointer-events:none}
 .tcard:hover .tcard-ov{opacity:1}
+
+/* Play button overlay — centered on video thumbnail */
+.play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.play-btn{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.92);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(0,0,0,0.28);transition:transform 0.22s,box-shadow 0.22s,background 0.22s}
+.tcard-img-wrap:hover .play-btn{transform:scale(1.15);box-shadow:0 6px 30px rgba(232,24,109,0.5);background:#fff}
+/* CSS triangle as play arrow */
+.play-arrow{width:0;height:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:20px solid var(--pk);margin-left:4px}
+
+/* "VIDEO" pill badge */
+.vid-badge{position:absolute;bottom:10px;left:12px;background:rgba(0,0,0,0.62);color:#fff;font-size:0.64rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:0.6px;backdrop-filter:blur(4px)}
+
 .cat-badge{position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);color:var(--pk2);font-size:0.7rem;font-weight:700;padding:4px 12px;border-radius:var(--r3);text-transform:uppercase;letter-spacing:0.6px;border:1px solid rgba(232,24,109,0.12)}
 .tcard-body{padding:1.2rem 1.3rem 1.3rem}
 .tcard-title{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--txt);margin-bottom:4px;line-height:1.3}
 .tcard-price{font-size:1.35rem;font-weight:700;color:var(--pk);margin-bottom:1rem;display:flex;align-items:baseline;gap:5px}
 .tcard-price sub{font-size:0.75rem;font-weight:400;color:var(--txt3)}
 .tcard-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
-.ctab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:9px 4px;border-radius:var(--r2);font-size:0.68rem;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;text-decoration:none;transition:var(--tr);position:relative;overflow:hidden;letter-spacing:0.3px}
+.ctab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:9px 4px;border-radius:var(--r2);font-size:0.68rem;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;text-decoration:none;transition:var(--tr);letter-spacing:0.3px}
 .ctab svg{width:15px;height:15px;flex-shrink:0}
 .ctab:hover{transform:translateY(-2px);filter:brightness(1.07)}
 .ctab:active{transform:scale(0.96)}
 .cwa{background:linear-gradient(135deg,#25D366,#1aad54);color:#fff;box-shadow:0 3px 10px rgba(37,211,102,0.28)}
-.cwa:hover{box-shadow:0 5px 18px rgba(37,211,102,0.42)}
 .cml{background:linear-gradient(135deg,var(--pk),#f5458a);color:#fff;box-shadow:0 3px 10px rgba(232,24,109,0.28)}
-.cml:hover{box-shadow:0 5px 18px rgba(232,24,109,0.42)}
 .cig{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;box-shadow:0 3px 10px rgba(220,39,67,0.28)}
-.cig:hover{box-shadow:0 5px 18px rgba(220,39,67,0.42)}
-.adm-ctrl{position:absolute;top:10px;right:10px;display:flex;gap:5px}
+
+.adm-ctrl{position:absolute;top:10px;right:10px;display:flex;gap:5px;z-index:5}
 .acb{background:rgba(255,255,255,0.9);backdrop-filter:blur(4px);border:none;border-radius:8px;padding:5px 7px;cursor:pointer;font-size:13px;transition:var(--tr)}
 .acb:hover{transform:scale(1.12)}
+
+/* ═══════════════════════════════════════════════════
+   VIDEO PLAYER MODAL
+   ═══════════════════════════════════════════════════ */
+.vmodal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.90);
+  z-index:900;
+  display:flex;align-items:center;justify-content:center;
+  padding:1rem;
+  animation:fadeIn 0.2s ease;
+  backdrop-filter:blur(10px);
+}
+.vmodal-box{
+  position:relative;
+  width:100%;max-width:860px;
+  background:#111;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,0.8);
+  animation:fadeUp 0.25s ease;
+}
+.vmodal-close{
+  position:absolute;top:12px;right:12px;z-index:10;
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,0.15);
+  border:none;color:#fff;font-size:15px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);
+  transition:background 0.2s,transform 0.2s;
+}
+.vmodal-close:hover{background:var(--pk);transform:rotate(90deg)}
+.vmodal-video{width:100%;max-height:82vh;display:block;outline:none}
+.vmodal-title{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:16px 20px;
+  background:linear-gradient(to top,rgba(0,0,0,0.80),transparent);
+  color:#fff;
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.2rem;font-weight:600;
+  pointer-events:none;
+}
+
+/* ── GENERAL MODAL ── */
 .overlay{position:fixed;inset:0;background:rgba(10,0,18,0.6);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px);animation:fadeIn 0.2s ease}
 .modal{background:#fff;border-radius:20px;padding:2.2rem;width:100%;max-width:440px;box-shadow:0 30px 80px rgba(0,0,0,0.28);animation:fadeUp 0.3s ease;position:relative;max-height:90vh;overflow-y:auto}
 .modal.wide{max-width:580px}
@@ -348,6 +311,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .hr{border:none;border-top:1px solid var(--pk3);margin:1.2rem 0}
 .slink{text-align:center;font-size:0.83rem;color:var(--txt3)}
 .slink a{color:var(--pk);cursor:pointer;font-weight:700;text-decoration:none}
+
 .adm{max-width:1200px;margin:0 auto;padding:2rem}
 .adm-hdr{background:linear-gradient(135deg,#1a0a12,#3d0020);border-radius:var(--r);padding:1.8rem 2rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;box-shadow:var(--sh2)}
 .adm-hdr h2{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:700;color:#fff;margin-bottom:3px}
@@ -371,14 +335,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .atbl tr:hover td{background:#fff9fc}
 .thumb{width:52px;height:38px;object-fit:cover;border-radius:8px;border:1px solid var(--pk3)}
 .bcat{padding:3px 10px;border-radius:var(--r3);font-size:0.7rem;font-weight:700;text-transform:capitalize}
-.bw{background:#fce4f3;color:var(--pk2)}
-.bh{background:#e8f5e9;color:#2e7d32}
-.bb{background:#fff3e0;color:#e65100}
+.bw{background:#fce4f3;color:var(--pk2)}.bh{background:#e8f5e9;color:#2e7d32}.bb{background:#fff3e0;color:#e65100}
 .tog{background:none;border:none;cursor:pointer;font-size:1.2rem;transition:transform 0.15s}
 .tog:hover{transform:scale(1.25)}
 .icb{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:7px;font-size:0.95rem;transition:background 0.15s}
-.icb:hover{background:var(--pk4)}
-.icb.del:hover{background:#fdecea}
+.icb:hover{background:var(--pk4)}.icb.del:hover{background:#fdecea}
 .act-cell{display:flex;gap:3px}
 .user-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--pk4)}
 .user-row:last-child{border-bottom:none}
@@ -390,7 +351,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .empty-icon{font-size:3.5rem;margin-bottom:1rem;animation:pulse 2.5s infinite}
 .empty p{color:var(--txt3);font-size:0.95rem}
 .toast-wrap{position:fixed;bottom:2rem;right:2rem;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast{background:linear-gradient(135deg,#1a0a12,#3d0020);color:#fff;padding:12px 20px;border-radius:var(--r2);font-size:0.85rem;box-shadow:0 8px 28px rgba(0,0,0,0.28);animation:slideDown 0.3s ease;border-left:3px solid var(--pk);max-width:300px;pointer-events:all}
+.toast{background:linear-gradient(135deg,#1a0a12,#3d0020);color:#fff;padding:12px 20px;border-radius:var(--r2);font-size:0.85rem;box-shadow:0 8px 28px rgba(0,0,0,0.28);animation:slideDown 0.3s ease;border-left:3px solid var(--pk);max-width:300px}
 .footer{background:linear-gradient(135deg,#1a0a12,#3d0020);padding:3rem 2rem;text-align:center;color:rgba(255,255,255,0.5);font-size:0.82rem;margin-top:2rem}
 .footer-brand{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--pk3);margin-bottom:0.5rem}
 .footer-brand span{color:var(--gd2)}
@@ -400,20 +361,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .flink:hover{color:var(--pk3)}
 .loading-overlay{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:1rem}
 .spinner{width:38px;height:38px;border:3px solid var(--pk3);border-top-color:var(--pk);border-radius:50%;animation:spin 0.7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+
 @media(max-width:1200px){.tcard{flex:1 1 220px;max-width:280px}}
 @media(max-width:768px){.tcard{flex:1 1 calc(50% - 0.75rem);max-width:calc(50% - 0.75rem)}}
 @media(max-width:480px){.tcard{flex:1 1 100%;max-width:100%}}
 @media(max-width:680px){
-  .hdr-in{padding:0 1rem}
-  .hero{padding:3.5rem 1rem 3rem}
-  .hero-stats{gap:1.5rem}
-  .sep{display:none}
-  .fbar{padding:0.7rem 1rem}
-  .main{padding:2rem 1rem 3rem}
-  .adm{padding:1rem}
-  .adm-hdr{padding:1.2rem}
-  .adm-tabs{flex-direction:column}
+  .hdr-in{padding:0 1rem}.hero{padding:3.5rem 1rem 3rem}
+  .hero-stats{gap:1.5rem}.sep{display:none}
+  .fbar{padding:0.7rem 1rem}.main{padding:2rem 1rem 3rem}
+  .adm{padding:1rem}.adm-hdr{padding:1.2rem}.adm-tabs{flex-direction:column}
+  .vmodal-box{border-radius:10px}
 }
 `;
 
@@ -424,14 +381,12 @@ const WaIcon = () => (
     <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.524 5.849L.057 23.547a.5.5 0 0 0 .609.608l5.763-1.453A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.848 0-3.579-.49-5.075-1.343l-.363-.214-3.767.949.97-3.687-.233-.374A9.947 9.947 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
   </svg>
 );
-
 const MailIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="15" height="15">
     <rect x="2" y="4" width="20" height="16" rx="2" />
     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
   </svg>
 );
-
 const IgIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
@@ -449,95 +404,190 @@ function useToast() {
   return { toasts, push };
 }
 
-// ─── TEMPLATE CARD ────────────────────────────────────────────────────────────
-function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }) {
-  const waMsg  = encodeURIComponent(`Hi, I'm interested in this invitation template: ${tpl.title}`);
-  // FIX: videos from Supabase Storage won't be data:video — check by extension or mime type stored
-  const isVideo = tpl.image
-    ? /\.(mp4|webm|ogg|mov)(\?|$)/i.test(tpl.image) || tpl.image.startsWith("data:video")
-    : false;
+// ═══════════════════════════════════════════════════════════════════════════════
+//  VIDEO PLAYER MODAL
+//  Opens when user clicks on a video card.
+//  - Dark blurred overlay
+//  - <video> tag with controls + autoplay
+//  - Close on X button, click-outside, or Escape key
+// ═══════════════════════════════════════════════════════════════════════════════
+function VideoModal({ url, title, onClose }) {
+  const videoRef = useRef(null);
+
+  // Close on Escape key
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") handleClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Try autoplay once the video element is ready
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {
+        // Browser blocked autoplay (needs user gesture) — user can press play manually
+      });
+    }
+  }, []);
+
+  const handleClose = () => {
+    // Pause + reset before closing so audio stops immediately
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+    onClose();
+  };
 
   return (
     <div
-      className="tcard"
-      style={{
-        animationDelay: `${delay}ms`,
-        opacity: !tpl.is_active && isAdmin ? 0.58 : 1,
-      }}
+      className="vmodal-overlay"
+      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
-      <div className="tcard-img-wrap">
-        {isVideo ? (
-          <video
-            src={tpl.image}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            autoPlay
-            muted
-            loop
-            playsInline
-          />
-        ) : (
-          <img
-            className="tcard-img"
-            src={tpl.image}
-            alt={tpl.title}
-            onError={(e) => {
-              e.target.src =
-                "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=420&fit=crop";
-            }}
-          />
-        )}
-        <div className="tcard-ov" />
-        <span className="cat-badge">
-          {tpl.category === "wedding"
-            ? "💍 Wedding"
-            : tpl.category === "housewarming"
-            ? "🏡 Housewarming"
-            : "🎂 Birthday"}
-        </span>
-        {isAdmin && (
-          <div className="adm-ctrl">
-            <button
-              className="acb"
-              onClick={() => onToggle(tpl.id, tpl.is_active)}
-              title={tpl.is_active ? "Deactivate" : "Activate"}
-            >
-              {tpl.is_active ? "👁️" : "🙈"}
-            </button>
-            <button className="acb" onClick={() => onEdit(tpl)} title="Edit">
-              ✏️
-            </button>
-            <button className="acb" onClick={() => onDelete(tpl.id)} title="Delete">
-              🗑️
-            </button>
-          </div>
-        )}
-      </div>
-      <div className="tcard-body">
-        <div className="tcard-title">{tpl.title}</div>
-        <div className="tcard-price">
-          ₹{tpl.price.toLocaleString()} <sub>/ design</sub>
-        </div>
-        <div className="tcard-btns">
-          <a
-            className="ctab cwa"
-            href={`https://wa.me/${WA}?text=${waMsg}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <WaIcon />
-            WhatsApp
-          </a>
-          <button className="ctab cml" onClick={() => onEmailClick(tpl)}>
-            <MailIcon />
-            Email
-          </button>
-          <a className="ctab cig" href={IG} target="_blank" rel="noreferrer">
-            <IgIcon />
-            Instagram
-          </a>
-        </div>
+      <div className="vmodal-box">
+        {/* ✕ Close button */}
+        <button className="vmodal-close" onClick={handleClose} aria-label="Close">✕</button>
+
+        {/* Video player */}
+        <video
+          ref={videoRef}
+          className="vmodal-video"
+          src={url}
+          controls
+          playsInline
+          preload="auto"
+        />
+
+        {/* Title gradient at bottom */}
+        {title && <div className="vmodal-title">▶ {title}</div>}
       </div>
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  TEMPLATE CARD
+//  — Images: displayed normally with hover zoom
+//  — Videos: shows a static thumbnail + centered play button overlay
+//             clicking the thumbnail opens VideoModal
+// ═══════════════════════════════════════════════════════════════════════════════
+function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }) {
+  // Local state: is the video modal open?
+  const [videoOpen, setVideoOpen] = useState(false);
+
+  const waMsg = encodeURIComponent(`Hi, I'm interested in this invitation template: ${tpl.title}`);
+  const isVid = isVideoUrl(tpl.image); // ← uses our helper function
+
+  return (
+    <>
+      <div
+        className="tcard"
+        style={{
+          animationDelay: `${delay}ms`,
+          opacity: !tpl.is_active && isAdmin ? 0.58 : 1,
+        }}
+      >
+        {/* ── Media thumbnail area ─────────────────────────────────────── */}
+        <div
+          className="tcard-img-wrap"
+          onClick={() => isVid && setVideoOpen(true)}
+          style={{ cursor: isVid ? "pointer" : "default" }}
+        >
+          {isVid ? (
+            <>
+              {/*
+                We use a muted <video> element as the thumbnail.
+                preload="metadata" loads just enough to show the first frame.
+                onLoadedMetadata seeks to 0.1s so the browser paints a real frame
+                instead of a black box on Chrome/Safari.
+              */}
+              <video
+                className="tcard-vid-thumb"
+                src={tpl.image}
+                muted
+                preload="metadata"
+                playsInline
+                onLoadedMetadata={(e) => { e.target.currentTime = 0.1; }}
+              />
+
+              {/* Hover gradient overlay */}
+              <div className="tcard-ov" />
+
+              {/* Centred play button — CSS only, no extra JS */}
+              <div className="play-overlay">
+                <div className="play-btn">
+                  <div className="play-arrow" />
+                </div>
+              </div>
+
+              {/* Small "VIDEO" badge at bottom-left */}
+              <span className="vid-badge">▶ VIDEO</span>
+            </>
+          ) : (
+            <>
+              <img
+                className="tcard-img"
+                src={tpl.image}
+                alt={tpl.title}
+                onError={(e) => {
+                  e.target.src =
+                    "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=420&fit=crop";
+                }}
+              />
+              {/* Hover gradient overlay */}
+              <div className="tcard-ov" />
+            </>
+          )}
+
+          {/* Category badge — always on top */}
+          <span className="cat-badge">
+            {tpl.category === "wedding" ? "💍 Wedding"
+              : tpl.category === "housewarming" ? "🏡 Housewarming"
+              : "🎂 Birthday"}
+          </span>
+
+          {/* Admin controls — stopPropagation so click doesn't open modal */}
+          {isAdmin && (
+            <div className="adm-ctrl">
+              <button className="acb" title={tpl.is_active ? "Deactivate" : "Activate"}
+                onClick={(e) => { e.stopPropagation(); onToggle(tpl.id, tpl.is_active); }}>
+                {tpl.is_active ? "👁️" : "🙈"}
+              </button>
+              <button className="acb" title="Edit"
+                onClick={(e) => { e.stopPropagation(); onEdit(tpl); }}>✏️</button>
+              <button className="acb" title="Delete"
+                onClick={(e) => { e.stopPropagation(); onDelete(tpl.id); }}>🗑️</button>
+            </div>
+          )}
+        </div>
+
+        {/* ── Card body ────────────────────────────────────────────────── */}
+        <div className="tcard-body">
+          <div className="tcard-title">{tpl.title}</div>
+          <div className="tcard-price">₹{tpl.price.toLocaleString()} <sub>/ design</sub></div>
+          <div className="tcard-btns">
+            <a className="ctab cwa" href={`https://wa.me/${WA}?text=${waMsg}`} target="_blank" rel="noreferrer">
+              <WaIcon />WhatsApp
+            </a>
+            <button className="ctab cml" onClick={() => onEmailClick(tpl)}>
+              <MailIcon />Email
+            </button>
+            <a className="ctab cig" href={IG} target="_blank" rel="noreferrer">
+              <IgIcon />Instagram
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Video modal — mounted outside the card so it overlays everything */}
+      {videoOpen && (
+        <VideoModal
+          url={tpl.image}
+          title={tpl.title}
+          onClose={() => setVideoOpen(false)}
+        />
+      )}
+    </>
   );
 }
 
@@ -549,64 +599,36 @@ function LoginModal({ onClose, onLogin }) {
   const [err, setErr]           = useState("");
   const [loading, setLoading]   = useState(false);
 
-  const handleEmailChange = (val) => {
-    setEmail(val);
-    setErr("");
-    setShowPass(val.trim() === _A.e);
-  };
+  const handleEmailChange = (val) => { setEmail(val); setErr(""); setShowPass(val.trim() === _A.e); };
 
   const submit = async () => {
     setErr("");
     if (!email.trim()) return setErr("Please enter your email address.");
-
     const isAdminUser = email.trim() === _A.e;
-
     if (isAdminUser) {
       if (!pass) return setErr("Password required.");
       if (pass !== _A.p) return setErr("Incorrect password.");
       setLoading(true);
       const s = { email: _A.e, role: "admin", name: "Admin", at: Date.now() };
-      session.set(s);
-      onLogin(s);
-      setLoading(false);
+      session.set(s); onLogin(s); setLoading(false);
     } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email.trim()))
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
         return setErr("Please enter a valid email.");
-
       setLoading(true);
       try {
-        const lower      = email.trim().toLowerCase();
+        const lower = email.trim().toLowerCase();
         const deviceInfo = getDeviceFingerprint();
-
         const { isNewDevice } = await upsertUser(lower, deviceInfo);
-
-        if (isNewDevice) {
-          sendDeviceAlertEmail(lower, deviceInfo);
-        }
-
-        const s = {
-          email: lower,
-          role:  "user",
-          name:  lower.split("@")[0],
-          at:    Date.now(),
-        };
-        session.set(s);
-        onLogin(s);
-      } catch (e) {
-        console.error("Login error:", e);
-        setErr("Something went wrong. Please try again.");
-      } finally {
-        setLoading(false);
-      }
+        if (isNewDevice) sendDeviceAlertEmail(lower, deviceInfo);
+        const s = { email: lower, role: "user", name: lower.split("@")[0], at: Date.now() };
+        session.set(s); onLogin(s);
+      } catch { setErr("Something went wrong. Please try again."); }
+      finally { setLoading(false); }
     }
   };
 
   return (
-    <div
-      className="overlay"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
+    <div className="overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <button className="modal-close" onClick={onClose}>✕</button>
         <div className="m-icon">🌸</div>
@@ -614,28 +636,16 @@ function LoginModal({ onClose, onLogin }) {
         <div className="m-sub">Sign in to explore premium invitation designs</div>
         <div className="fg">
           <label className="flabel">Email Address</label>
-          <input
-            className="fi"
-            type="email"
-            placeholder="your@email.com"
-            value={email}
-            autoFocus
+          <input className="fi" type="email" placeholder="your@email.com" value={email} autoFocus
             onChange={(e) => handleEmailChange(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-          />
+            onKeyDown={(e) => e.key === "Enter" && submit()} />
         </div>
         {showPass && (
           <div className="fg">
             <label className="flabel">Password</label>
-            <input
-              className="fi"
-              type="password"
-              placeholder="••••••••"
-              value={pass}
-              autoFocus
+            <input className="fi" type="password" placeholder="••••••••" value={pass} autoFocus
               onChange={(e) => { setPass(e.target.value); setErr(""); }}
-              onKeyDown={(e) => e.key === "Enter" && submit()}
-            />
+              onKeyDown={(e) => e.key === "Enter" && submit()} />
           </div>
         )}
         {err && <div className="errmsg">⚠️ {err}</div>}
@@ -643,21 +653,15 @@ function LoginModal({ onClose, onLogin }) {
           {loading ? "Signing in..." : showPass ? "Login →" : "Continue →"}
         </button>
         <hr className="hr" />
-        <div className="slink">
-          By continuing you agree to our <a>Privacy Policy</a>
-        </div>
+        <div className="slink">By continuing you agree to our <a>Privacy Policy</a></div>
       </div>
     </div>
   );
 }
 
 // ─── TEMPLATE FORM ────────────────────────────────────────────────────────────
-// FIX: Added fileInputRef to properly reset file input after save.
-// FIX: image URL vs File object handling improved.
-// FIX: onSave now properly awaits and error propagation fixed.
 function TplForm({ tpl, onClose, onSave }) {
   const blank = { title: "", category: "wedding", price: "", image: "", is_active: true };
-
   const [f, setF]             = useState(tpl ? { ...tpl } : blank);
   const [err, setErr]         = useState("");
   const [success, setSuccess] = useState(false);
@@ -665,211 +669,95 @@ function TplForm({ tpl, onClose, onSave }) {
   const [_file, setFile]      = useState(null);
   const [saving, setSaving]   = useState(false);
   const fileInputRef          = useRef(null);
-
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
 
-  // Revoke object URLs on unmount to avoid memory leaks
   useEffect(() => {
-    return () => {
-      if (_file && preview && preview.startsWith("blob:")) {
-        URL.revokeObjectURL(preview);
-      }
-    };
+    return () => { if (_file && preview?.startsWith("blob:")) URL.revokeObjectURL(preview); };
   }, []);
 
   const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    // Revoke previous blob URL if any
-    if (preview && preview.startsWith("blob:")) {
-      URL.revokeObjectURL(preview);
-    }
+    if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
     setFile(file);
-    const objectUrl = URL.createObjectURL(file);
-    setPreview(objectUrl);
+    setPreview(URL.createObjectURL(file));
     setErr("");
   };
 
   const save = async () => {
-    setErr("");
-    setSuccess(false);
-
-    // Validation
+    setErr(""); setSuccess(false);
     if (!f.title.trim()) return setErr("Title is required.");
     const priceNum = Number(f.price);
     if (!f.price || isNaN(priceNum) || priceNum <= 0) return setErr("Enter a valid price.");
-    // Need either an existing image URL OR a newly picked file
     if (!f.image && !_file) return setErr("Please upload an image or video.");
-
     setSaving(true);
-    console.log("[TplForm] save → id:", tpl?.id ?? "new", "_file:", _file?.name ?? "none");
-
     try {
-      await onSave({
-        ...f,
-        price: priceNum,
-        id:    tpl?.id,   // undefined for new templates — that's fine
-        _file,            // raw File | null
-      });
-
-      console.log("[TplForm] saved successfully");
+      await onSave({ ...f, price: priceNum, id: tpl?.id, _file });
       setSuccess(true);
       setTimeout(() => onClose(), 900);
-    } catch (e) {
-      console.error("[TplForm] save error:", e);
-      setErr(e?.message || "Save failed. Please try again.");
-    } finally {
-      setSaving(false);
-    }
+    } catch (e) { setErr(e?.message || "Save failed. Please try again."); }
+    finally { setSaving(false); }
   };
 
-  // Determine if the previewed file is a video
-  const isVideo = _file
-    ? _file.type.startsWith("video/")
-    : /\.(mp4|webm|ogg|mov)(\?|$)/i.test(preview || "") ||
-      (preview || "").startsWith("data:video");
+  const isVidPreview = _file ? _file.type.startsWith("video/") : isVideoUrl(preview);
 
   return (
-    <div
-      className="overlay"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
+    <div className="overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal wide">
         <button className="modal-close" onClick={onClose}>✕</button>
         <div className="m-icon">{tpl ? "✏️" : "✨"}</div>
         <div className="m-title">{tpl ? "Edit Template" : "Add Template"}</div>
-        <div className="m-sub">
-          {tpl ? "Update the details below" : "Fill in the details for the new design"}
-        </div>
-
+        <div className="m-sub">{tpl ? "Update the details below" : "Fill in the details for the new design"}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-          {/* Title */}
           <div className="fg" style={{ gridColumn: "1/-1" }}>
             <label className="flabel">Title *</label>
-            <input
-              className="fi"
-              placeholder="e.g. Royal Lotus Wedding"
-              value={f.title}
-              onChange={(e) => set("title", e.target.value)}
-            />
+            <input className="fi" placeholder="e.g. Royal Lotus Wedding" value={f.title}
+              onChange={(e) => set("title", e.target.value)} />
           </div>
-
-          {/* Category */}
           <div className="fg">
             <label className="flabel">Category *</label>
-            <select
-              className="fsel"
-              value={f.category}
-              onChange={(e) => set("category", e.target.value)}
-            >
+            <select className="fsel" value={f.category} onChange={(e) => set("category", e.target.value)}>
               <option value="wedding">Wedding</option>
               <option value="housewarming">Housewarming</option>
               <option value="birthday">Birthday</option>
             </select>
           </div>
-
-          {/* Price */}
           <div className="fg">
             <label className="flabel">Price (₹) *</label>
-            <input
-              className="fi"
-              type="number"
-              placeholder="999"
-              value={f.price}
-              min="1"
-              onChange={(e) => set("price", e.target.value)}
-            />
+            <input className="fi" type="number" placeholder="999" value={f.price} min="1"
+              onChange={(e) => set("price", e.target.value)} />
           </div>
-
-          {/* File upload */}
           <div className="fg" style={{ gridColumn: "1/-1" }}>
             <label className="flabel">Image / Video *</label>
-            <input
-              ref={fileInputRef}
-              className="fi"
-              type="file"
-              accept="image/*,video/*"
-              onChange={handleFile}
-              style={{ padding: "7px 10px", cursor: "pointer" }}
-            />
+            <input ref={fileInputRef} className="fi" type="file" accept="image/*,video/*"
+              onChange={handleFile} style={{ padding: "7px 10px", cursor: "pointer" }} />
             {_file ? (
-              <div style={{ fontSize: "0.75rem", color: "var(--pk2)", marginTop: 4 }}>
-                ✅ New file selected: {_file.name}
-              </div>
+              <div style={{ fontSize: "0.75rem", color: "var(--pk2)", marginTop: 4 }}>✅ New file: {_file.name}</div>
             ) : tpl?.image ? (
-              <div style={{ fontSize: "0.75rem", color: "var(--txt3)", marginTop: 4 }}>
-                No new file chosen — existing media will be kept.
-              </div>
+              <div style={{ fontSize: "0.75rem", color: "var(--txt3)", marginTop: 4 }}>No new file — existing media kept.</div>
             ) : null}
           </div>
-
-          {/* Preview */}
           {preview && (
-            <div
-              style={{
-                gridColumn: "1/-1",
-                borderRadius: 10,
-                overflow: "hidden",
-                border: "1.5px solid var(--pk3)",
-                maxHeight: 180,
-              }}
-            >
-              {isVideo ? (
-                <video
-                  src={preview}
-                  controls
-                  style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }}
-                />
+            <div style={{ gridColumn: "1/-1", borderRadius: 10, overflow: "hidden", border: "1.5px solid var(--pk3)", maxHeight: 180 }}>
+              {isVidPreview ? (
+                <video src={preview} controls style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
               ) : (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }}
-                />
+                <img src={preview} alt="Preview" style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
               )}
             </div>
           )}
-
-          {/* Active toggle */}
-          <div
-            className="fg"
-            style={{
-              gridColumn: "1/-1",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <input
-              type="checkbox"
-              id="act"
-              checked={f.is_active}
+          <div className="fg" style={{ gridColumn: "1/-1", display: "flex", alignItems: "center", gap: 10 }}>
+            <input type="checkbox" id="act" checked={f.is_active}
               onChange={(e) => set("is_active", e.target.checked)}
-              style={{ accentColor: "var(--pk)", width: 16, height: 16, cursor: "pointer" }}
-            />
-            <label
-              htmlFor="act"
-              style={{ fontSize: "0.88rem", color: "var(--txt2)", cursor: "pointer", fontWeight: 500 }}
-            >
+              style={{ accentColor: "var(--pk)", width: 16, height: 16, cursor: "pointer" }} />
+            <label htmlFor="act" style={{ fontSize: "0.88rem", color: "var(--txt2)", cursor: "pointer", fontWeight: 500 }}>
               Active — visible to all users
             </label>
           </div>
         </div>
-
         {err     && <div className="errmsg" style={{ marginTop: 8 }}>⚠️ {err}</div>}
-        {success && (
-          <div style={{ fontSize: "0.85rem", color: "#27ae60", marginTop: 8, textAlign: "center" }}>
-            ✅ Saved successfully!
-          </div>
-        )}
-
-        {/* FIX: button type="button" prevents any accidental form submission */}
-        <button
-          type="button"
-          className="sub-btn"
-          onClick={save}
-          disabled={saving}
-        >
+        {success && <div style={{ fontSize: "0.85rem", color: "#27ae60", marginTop: 8, textAlign: "center" }}>✅ Saved!</div>}
+        <button type="button" className="sub-btn" onClick={save} disabled={saving}>
           {saving ? "Saving…" : tpl ? "Save Changes" : "Add Template"}
         </button>
       </div>
@@ -884,25 +772,15 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
   const [editTpl, setEditTpl]   = useState(null);
   const [users, setUsers]       = useState([]);
 
-  useEffect(() => {
-    if (tab === "users") {
-      fetchUsers().then(setUsers);
-    }
-  }, [tab]);
+  useEffect(() => { if (tab === "users") fetchUsers().then(setUsers); }, [tab]);
 
   const total  = templates.length;
   const active = templates.filter((t) => t.is_active).length;
   const bycat  = (c) => templates.filter((t) => t.category === c).length;
 
-  // FIX: doSave now correctly calls onAdd vs onEdit and closes the form
   const doSave = async (data) => {
-    if (data.id) {
-      await onEdit(data);
-    } else {
-      await onAdd(data);
-    }
-    setShowForm(false);
-    setEditTpl(null);
+    data.id ? await onEdit(data) : await onAdd(data);
+    setShowForm(false); setEditTpl(null);
   };
 
   return (
@@ -910,122 +788,58 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
       <div className="adm-hdr">
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <h2>Admin Dashboard</h2>
-            <span className="adm-badge">Admin</span>
+            <h2>Admin Dashboard</h2><span className="adm-badge">Admin</span>
           </div>
           <p>Manage templates · View user registrations · Control visibility</p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <button
-            className="add-fab"
-            onClick={() => { setEditTpl(null); setShowForm(true); }}
-          >
-            ＋ Add Template
-          </button>
-          <button
-            className="btn-nav"
-            style={{ color: "rgba(255,255,255,0.65)", borderColor: "rgba(255,255,255,0.2)" }}
-            onClick={onLogout}
-          >
-            Logout
-          </button>
+          <button className="add-fab" onClick={() => { setEditTpl(null); setShowForm(true); }}>＋ Add Template</button>
+          <button className="btn-nav" style={{ color: "rgba(255,255,255,0.65)", borderColor: "rgba(255,255,255,0.2)" }} onClick={onLogout}>Logout</button>
         </div>
       </div>
 
       <div className="stats-row">
-        <div className="scard"><div className="n">{total}</div><div className="l">Total</div></div>
-        <div className="scard"><div className="n" style={{ color: "#27ae60" }}>{active}</div><div className="l">Active</div></div>
-        <div className="scard"><div className="n">{total - active}</div><div className="l">Hidden</div></div>
-        <div className="scard"><div className="n">{bycat("wedding")}</div><div className="l">Wedding</div></div>
-        <div className="scard"><div className="n">{bycat("housewarming")}</div><div className="l">Housewarming</div></div>
-        <div className="scard"><div className="n">{bycat("birthday")}</div><div className="l">Birthday</div></div>
-        <div className="scard"><div className="n">{users.length}</div><div className="l">Users</div></div>
+        {[["Total",total,"var(--pk)"],["Active",active,"#27ae60"],["Hidden",total-active,"var(--pk)"],
+          ["Wedding",bycat("wedding"),"var(--pk)"],["Housewarming",bycat("housewarming"),"var(--pk)"],
+          ["Birthday",bycat("birthday"),"var(--pk)"],["Users",users.length,"var(--pk)"]
+        ].map(([label, val, color]) => (
+          <div key={label} className="scard"><div className="n" style={{ color }}>{val}</div><div className="l">{label}</div></div>
+        ))}
       </div>
 
       <div className="adm-tabs">
-        <button
-          className={`adm-tab${tab === "templates" ? " on" : ""}`}
-          onClick={() => setTab("templates")}
-        >
-          📦 Templates ({total})
-        </button>
-        <button
-          className={`adm-tab${tab === "users" ? " on" : ""}`}
-          onClick={() => setTab("users")}
-        >
-          👥 Users ({users.length})
-        </button>
+        <button className={`adm-tab${tab === "templates" ? " on" : ""}`} onClick={() => setTab("templates")}>📦 Templates ({total})</button>
+        <button className={`adm-tab${tab === "users" ? " on" : ""}`} onClick={() => setTab("users")}>👥 Users ({users.length})</button>
       </div>
 
       {tab === "templates" && (
         <div className="tbl-wrap">
           <table className="atbl">
-            <thead>
-              <tr>
-                <th>Preview</th>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Price</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Preview</th><th>Title</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
               {templates.length === 0 && (
-                <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "2.5rem", color: "var(--txt3)" }}>
-                    No templates yet.
-                  </td>
-                </tr>
+                <tr><td colSpan={6} style={{ textAlign: "center", padding: "2.5rem", color: "var(--txt3)" }}>No templates yet.</td></tr>
               )}
               {templates.map((t) => (
                 <tr key={t.id}>
                   <td>
-                    {/\.(mp4|webm|ogg|mov)(\?|$)/i.test(t.image || "") ||
-                    t.image?.startsWith("data:video") ? (
-                      <video
-                        src={t.image}
-                        className="thumb"
-                        muted
-                        style={{ borderRadius: 8, border: "1px solid var(--pk3)" }}
-                      />
+                    {isVideoUrl(t.image) ? (
+                      <video src={t.image} className="thumb" muted preload="metadata"
+                        onLoadedMetadata={(e) => { e.target.currentTime = 0.1; }}
+                        style={{ borderRadius: 8, border: "1px solid var(--pk3)" }} />
                     ) : (
-                      <img
-                        className="thumb"
-                        src={t.image}
-                        alt={t.title}
-                        onError={(e) => {
-                          e.target.src =
-                            "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=52&h=38&fit=crop";
-                        }}
-                      />
+                      <img className="thumb" src={t.image} alt={t.title}
+                        onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=52&h=38&fit=crop"; }} />
                     )}
                   </td>
                   <td style={{ fontWeight: 600, maxWidth: 170 }}>{t.title}</td>
-                  <td>
-                    <span className={`bcat ${t.category === "wedding" ? "bw" : t.category === "housewarming" ? "bh" : "bb"}`}>
-                      {t.category}
-                    </span>
-                  </td>
-                  <td style={{ color: "var(--pk)", fontWeight: 700 }}>
-                    ₹{t.price.toLocaleString()}
-                  </td>
-                  <td>
-                    <button className="tog" onClick={() => onToggle(t.id, t.is_active)}>
-                      {t.is_active ? "✅" : "❌"}
-                    </button>
-                  </td>
+                  <td><span className={`bcat ${t.category === "wedding" ? "bw" : t.category === "housewarming" ? "bh" : "bb"}`}>{t.category}</span></td>
+                  <td style={{ color: "var(--pk)", fontWeight: 700 }}>₹{t.price.toLocaleString()}</td>
+                  <td><button className="tog" onClick={() => onToggle(t.id, t.is_active)}>{t.is_active ? "✅" : "❌"}</button></td>
                   <td>
                     <div className="act-cell">
-                      <button
-                        className="icb"
-                        onClick={() => { setEditTpl(t); setShowForm(true); }}
-                      >
-                        ✏️
-                      </button>
-                      <button className="icb del" onClick={() => onDelete(t.id)}>
-                        🗑️
-                      </button>
+                      <button className="icb" onClick={() => { setEditTpl(t); setShowForm(true); }}>✏️</button>
+                      <button className="icb del" onClick={() => onDelete(t.id)}>🗑️</button>
                     </div>
                   </td>
                 </tr>
@@ -1037,25 +851,11 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
 
       {tab === "users" && (
         <div className="tbl-wrap">
-          <div
-            style={{
-              padding: "13px 16px",
-              borderBottom: "1px solid var(--pk4)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--txt2)" }}>
-              Registered Users
-            </span>
+          <div style={{ padding: "13px 16px", borderBottom: "1px solid var(--pk4)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--txt2)" }}>Registered Users</span>
             <span className="ucnt">{users.length} total</span>
           </div>
-          {users.length === 0 && (
-            <div style={{ padding: "2.5rem", textAlign: "center", color: "var(--txt3)" }}>
-              No users signed in yet.
-            </div>
-          )}
+          {users.length === 0 && <div style={{ padding: "2.5rem", textAlign: "center", color: "var(--txt3)" }}>No users yet.</div>}
           {users.map((u, i) => (
             <div key={i} className="user-row">
               <div className="uavatar">{u.email.charAt(0).toUpperCase()}</div>
@@ -1064,8 +864,7 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
                 {u.joined_at && (
                   <div className="utime">
                     Joined: {new Date(u.joined_at).toLocaleString("en-IN")}
-                    {u.last_login &&
-                      ` · Last login: ${new Date(u.last_login).toLocaleString("en-IN")}`}
+                    {u.last_login && ` · Last login: ${new Date(u.last_login).toLocaleString("en-IN")}`}
                   </div>
                 )}
               </div>
@@ -1074,13 +873,7 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
         </div>
       )}
 
-      {showForm && (
-        <TplForm
-          tpl={editTpl}
-          onClose={() => { setShowForm(false); setEditTpl(null); }}
-          onSave={doSave}
-        />
-      )}
+      {showForm && <TplForm tpl={editTpl} onClose={() => { setShowForm(false); setEditTpl(null); }} onSave={doSave} />}
     </div>
   );
 }
@@ -1090,83 +883,38 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
   const [cat, setCat]           = useState("all");
   const [maxPrice, setMaxPrice] = useState(2500);
   const [editTpl, setEditTpl]   = useState(null);
-
-  // FIX: guard against empty array (Math.max(...[]) = -Infinity)
-  const highPrice = templates.length
-    ? Math.max(...templates.map((t) => t.price), 2500)
-    : 2500;
-
+  const highPrice = templates.length ? Math.max(...templates.map((t) => t.price), 2500) : 2500;
   const shown = templates
     .filter((t) => isAdmin || t.is_active)
     .filter((t) => cat === "all" || t.category === cat)
     .filter((t) => t.price <= maxPrice);
-
   const cats = [
-    { k: "all",          l: "✨ All" },
-    { k: "wedding",      l: "💍 Wedding" },
-    { k: "housewarming", l: "🏡 Housewarming" },
-    { k: "birthday",     l: "🎂 Birthday" },
+    { k: "all", l: "✨ All" }, { k: "wedding", l: "💍 Wedding" },
+    { k: "housewarming", l: "🏡 Housewarming" }, { k: "birthday", l: "🎂 Birthday" },
   ];
-
-  const handleEmailClick = (tpl) => sendEnquiryEmail(tpl, toast);
 
   return (
     <>
       <section className="hero">
         <div className="hero-tag">✦ Premium Digital Invitations ✦</div>
-        <h1 className="hero-h1">
-          Beautiful <em>Invitations</em>
-          <br />
-          for Every <span className="gold-word">Celebration</span>
-        </h1>
-        <p className="hero-p">
-          Handcrafted digital invitation designs for weddings, housewarmings &amp; birthdays —
-          share the joy, beautifully.
-        </p>
+        <h1 className="hero-h1">Beautiful <em>Invitations</em><br />for Every <span className="gold-word">Celebration</span></h1>
+        <p className="hero-p">Handcrafted digital invitation designs for weddings, housewarmings &amp; birthdays — share the joy, beautifully.</p>
         <div className="hero-cta">
           {!sess ? (
-            <button className="btn-hero primary" onClick={onLoginClick}>
-              Browse Designs →
-            </button>
+            <button className="btn-hero primary" onClick={onLoginClick}>Browse Designs →</button>
           ) : (
-            <button
-              className="btn-hero primary"
-              onClick={() =>
-                document.getElementById("tgrid")?.scrollIntoView({ behavior: "smooth" })
-              }
-            >
-              Explore Designs →
-            </button>
+            <button className="btn-hero primary" onClick={() => document.getElementById("tgrid")?.scrollIntoView({ behavior: "smooth" })}>Explore Designs →</button>
           )}
-          <a
-            className="btn-hero secondary"
-            href={`https://wa.me/${WA}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            WhatsApp Us
-          </a>
+          <a className="btn-hero secondary" href={`https://wa.me/${WA}`} target="_blank" rel="noreferrer">WhatsApp Us</a>
         </div>
         <div className="hero-stats">
-          <div className="hstat">
-            <div className="hstat-n">{templates.filter((t) => t.is_active).length}+</div>
-            <div className="hstat-l">Designs</div>
-          </div>
+          <div className="hstat"><div className="hstat-n">{templates.filter((t) => t.is_active).length}+</div><div className="hstat-l">Designs</div></div>
           <div className="sep" />
-          <div className="hstat">
-            <div className="hstat-n">3</div>
-            <div className="hstat-l">Categories</div>
-          </div>
+          <div className="hstat"><div className="hstat-n">3</div><div className="hstat-l">Categories</div></div>
           <div className="sep" />
-          <div className="hstat">
-            <div className="hstat-n">100%</div>
-            <div className="hstat-l">Custom</div>
-          </div>
+          <div className="hstat"><div className="hstat-n">100%</div><div className="hstat-l">Custom</div></div>
           <div className="sep" />
-          <div className="hstat">
-            <div className="hstat-n">Fast</div>
-            <div className="hstat-l">Delivery</div>
-          </div>
+          <div className="hstat"><div className="hstat-n">Fast</div><div className="hstat-l">Delivery</div></div>
         </div>
       </section>
 
@@ -1174,24 +922,12 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
         <div className="fbar">
           <div className="fbar-in">
             {cats.map((c) => (
-              <button
-                key={c.k}
-                className={`fchip${cat === c.k ? " on" : ""}`}
-                onClick={() => setCat(c.k)}
-              >
-                {c.l}
-              </button>
+              <button key={c.k} className={`fchip${cat === c.k ? " on" : ""}`} onClick={() => setCat(c.k)}>{c.l}</button>
             ))}
             <div className="fprice">
               <label>Max price:</label>
-              <input
-                type="range"
-                min={200}
-                max={highPrice}
-                step={50}
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-              />
+              <input type="range" min={200} max={highPrice} step={50} value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))} />
               <span className="fpval">₹{maxPrice.toLocaleString()}</span>
             </div>
             <span className="fcnt">{shown.length} designs</span>
@@ -1203,23 +939,15 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
         {!sess ? (
           <div className="empty">
             <div className="empty-icon">🌸</div>
-            <p style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--txt)", marginBottom: 10 }}>
-              Sign in to browse premium designs
-            </p>
-            <p style={{ marginBottom: "1.8rem" }}>
-              Create a free account — no OTP, instant access to all templates
-            </p>
-            <button className="btn-hero primary" onClick={onLoginClick}>
-              Sign In — It's Free →
-            </button>
+            <p style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--txt)", marginBottom: 10 }}>Sign in to browse premium designs</p>
+            <p style={{ marginBottom: "1.8rem" }}>Create a free account — no OTP, instant access</p>
+            <button className="btn-hero primary" onClick={onLoginClick}>Sign In — It's Free →</button>
           </div>
         ) : (
           <>
             <div className="sec-hdr">
               <h2 className="sec-title">
-                {cat === "all"
-                  ? "All Designs"
-                  : cats.find((c) => c.k === cat)?.l.replace(/^.+ /, "") + " Designs"}
+                {cat === "all" ? "All Designs" : cats.find((c) => c.k === cat)?.l.replace(/^.+ /, "") + " Designs"}
               </h2>
               <div className="sec-line" />
             </div>
@@ -1231,16 +959,9 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
             ) : (
               <div className="tgrid" id="tgrid">
                 {shown.map((tpl, i) => (
-                  <TCard
-                    key={tpl.id}
-                    tpl={tpl}
-                    isAdmin={isAdmin}
-                    delay={i * 55}
-                    onEdit={(t) => setEditTpl(t)}
-                    onDelete={onDelete}
-                    onToggle={onToggle}
-                    onEmailClick={handleEmailClick}
-                  />
+                  <TCard key={tpl.id} tpl={tpl} isAdmin={isAdmin} delay={i * 55}
+                    onEdit={(t) => setEditTpl(t)} onDelete={onDelete} onToggle={onToggle}
+                    onEmailClick={(t) => sendEnquiryEmail(t, toast)} />
                 ))}
               </div>
             )}
@@ -1249,15 +970,8 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
       </main>
 
       {editTpl && (
-        <TplForm
-          tpl={editTpl}
-          onClose={() => setEditTpl(null)}
-          onSave={async (data) => {
-            await onEdit(data);
-            setEditTpl(null);
-            toast("Template updated! ✅");
-          }}
-        />
+        <TplForm tpl={editTpl} onClose={() => setEditTpl(null)}
+          onSave={async (data) => { await onEdit(data); setEditTpl(null); toast("Template updated! ✅"); }} />
       )}
     </>
   );
@@ -1267,110 +981,60 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
 export default function App() {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading]     = useState(true);
-  // FIX: use a function initialiser so session.get() only runs once
   const [sess, setSess]           = useState(() => session.get());
-  const [page, setPage]           = useState(() =>
-    session.get()?.role === "admin" ? "admin" : "home"
-  );
+  const [page, setPage]           = useState(() => session.get()?.role === "admin" ? "admin" : "home");
   const [showLogin, setShowLogin] = useState(false);
   const { toasts, push: toast }   = useToast();
   const channelRef                = useRef(null);
+  const isAdmin                   = sess?.role === "admin";
 
-  const isAdmin = sess?.role === "admin";
-
-  // ── 1. Initial fetch ──────────────────────────────────────────────────────
   useEffect(() => {
-    fetchTemplates(isAdmin).then((data) => {
-      setTemplates(data);
-      setLoading(false);
-    });
+    fetchTemplates(isAdmin).then((data) => { setTemplates(data); setLoading(false); });
   }, [isAdmin]);
 
-  // ── 2. Real-time subscription ─────────────────────────────────────────────
   useEffect(() => {
     if (channelRef.current) supabase.removeChannel(channelRef.current);
-
-    const channel = supabase
-      .channel("templates-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "templates" },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            const newRow = payload.new;
-            if (!isAdmin && !newRow.is_active) return;
-            setTemplates((prev) => [newRow, ...prev]);
-          }
-
-          if (payload.eventType === "UPDATE") {
-            const updated = payload.new;
-            setTemplates((prev) => {
-              if (!isAdmin && !updated.is_active) {
-                return prev.filter((t) => t.id !== updated.id);
-              }
-              const exists = prev.find((t) => t.id === updated.id);
-              if (exists) return prev.map((t) => (t.id === updated.id ? updated : t));
-              return [updated, ...prev];
-            });
-          }
-
-          if (payload.eventType === "DELETE") {
-            setTemplates((prev) => prev.filter((t) => t.id !== payload.old.id));
-          }
+    const channel = supabase.channel("templates-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "templates" }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          const r = payload.new;
+          if (!isAdmin && !r.is_active) return;
+          setTemplates((p) => [r, ...p]);
         }
-      )
-      .subscribe();
-
+        if (payload.eventType === "UPDATE") {
+          const u = payload.new;
+          setTemplates((p) => {
+            if (!isAdmin && !u.is_active) return p.filter((t) => t.id !== u.id);
+            const exists = p.find((t) => t.id === u.id);
+            if (exists) return p.map((t) => (t.id === u.id ? u : t));
+            return [u, ...p];
+          });
+        }
+        if (payload.eventType === "DELETE") {
+          setTemplates((p) => p.filter((t) => t.id !== payload.old.id));
+        }
+      }).subscribe();
     channelRef.current = channel;
     return () => { supabase.removeChannel(channel); };
   }, [isAdmin]);
 
-  // ── 3. CRUD handlers ──────────────────────────────────────────────────────
-  const addT = async (tpl) => {
-    const newRow = await insertTemplate(tpl);
-    toast("Template added! ✨");
-    return newRow;
-  };
+  const addT  = async (tpl) => { const r = await insertTemplate(tpl); toast("Template added! ✨"); return r; };
+  const editT = async (tpl) => { await updateTemplate(tpl); toast("Template updated! ✅"); };
+  const delT  = async (id)  => { if (!window.confirm("Delete permanently?")) return; await deleteTemplate(id); toast("Deleted."); };
+  const togT  = async (id, cur) => { await toggleTemplate(id, cur); toast("Visibility updated! 👁️"); };
 
-  const editT = async (tpl) => {
-    await updateTemplate(tpl);
-    toast("Template updated! ✅");
-  };
-
-  const delT = async (id) => {
-    if (!window.confirm("Delete this template permanently?")) return;
-    await deleteTemplate(id);
-    toast("Template deleted.");
-  };
-
-  const togT = async (id, currentActive) => {
-    await toggleTemplate(id, currentActive);
-    toast("Visibility updated! 👁️");
-  };
-
-  // ── 4. Auth handlers ──────────────────────────────────────────────────────
   const handleLogin = async (s) => {
-    setSess(s);
-    setShowLogin(false);
-    if (s.role === "admin") {
-      setPage("admin");
-      toast("Welcome back, Admin! 🛡️");
-      // Admin sees all — re-fetch including hidden ones
-      fetchTemplates(true).then(setTemplates);
-    } else {
-      toast(`Welcome, ${s.name}! 🌸`);
-    }
+    setSess(s); setShowLogin(false);
+    if (s.role === "admin") { setPage("admin"); toast("Welcome back, Admin! 🛡️"); fetchTemplates(true).then(setTemplates); }
+    else toast(`Welcome, ${s.name}! 🌸`);
   };
 
   const handleLogout = () => {
-    session.del();
-    setSess(null);
-    setPage("home");
+    session.del(); setSess(null); setPage("home");
     toast("Logged out. See you soon! 👋");
     fetchTemplates(false).then(setTemplates);
   };
 
-  // ── 5. Render ─────────────────────────────────────────────────────────────
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
@@ -1379,32 +1043,21 @@ export default function App() {
         <div className="hdr-in">
           <div className="logo" onClick={() => setPage("home")}>
             <div className="logo-mark">🌸</div>
-            <span className="logo-text">
-              Chitrakala <span>Invitations</span>
-            </span>
+            <span className="logo-text">Chitrakala <span>Invitations</span></span>
           </div>
           <nav className="nav-right">
             {sess ? (
               <>
-                <span className="chip-user">
-                  {isAdmin ? "🛡️ Admin" : `👤 ${sess.name}`}
-                </span>
+                <span className="chip-user">{isAdmin ? "🛡️ Admin" : `👤 ${sess.name}`}</span>
                 {isAdmin && (
-                  <button
-                    className="btn-nav gold"
-                    onClick={() => setPage(page === "admin" ? "home" : "admin")}
-                  >
+                  <button className="btn-nav gold" onClick={() => setPage(page === "admin" ? "home" : "admin")}>
                     {page === "admin" ? "🏠 Home" : "🛠️ Dashboard"}
                   </button>
                 )}
-                <button className="btn-nav" onClick={handleLogout}>
-                  Logout
-                </button>
+                <button className="btn-nav" onClick={handleLogout}>Logout</button>
               </>
             ) : (
-              <button className="btn-nav solid" onClick={() => setShowLogin(true)}>
-                Sign In
-              </button>
+              <button className="btn-nav solid" onClick={() => setShowLogin(true)}>Sign In</button>
             )}
           </nav>
         </div>
@@ -1416,59 +1069,29 @@ export default function App() {
           <p style={{ color: "var(--txt3)", fontSize: "0.9rem" }}>Loading designs…</p>
         </div>
       ) : page === "admin" && isAdmin ? (
-        <AdminDash
-          templates={templates}
-          onAdd={addT}
-          onEdit={editT}
-          onDelete={delT}
-          onToggle={togT}
-          onLogout={handleLogout}
-        />
+        <AdminDash templates={templates} onAdd={addT} onEdit={editT} onDelete={delT} onToggle={togT} onLogout={handleLogout} />
       ) : (
-        <HomePage
-          templates={templates}
-          session={sess}
-          isAdmin={isAdmin}
-          onEdit={editT}
-          onDelete={delT}
-          onToggle={togT}
-          onLoginClick={() => setShowLogin(true)}
-          toast={toast}
-        />
+        <HomePage templates={templates} session={sess} isAdmin={isAdmin}
+          onEdit={editT} onDelete={delT} onToggle={togT}
+          onLoginClick={() => setShowLogin(true)} toast={toast} />
       )}
 
       <footer className="footer">
-        <div className="footer-brand">
-          Chitrakala <span>Invitations</span>
-        </div>
+        <div className="footer-brand">Chitrakala <span>Invitations</span></div>
         <div className="gold-div" />
         <div>Premium digital invitations for every milestone</div>
         <div className="flinks">
-          <a className="flink" href={`https://wa.me/${WA}`} target="_blank" rel="noreferrer">
-            WhatsApp
-          </a>
-          <a className="flink" href={`mailto:${MAIL}`}>
-            Email Us
-          </a>
-          <a className="flink" href={IG} target="_blank" rel="noreferrer">
-            Instagram
-          </a>
+          <a className="flink" href={`https://wa.me/${WA}`} target="_blank" rel="noreferrer">WhatsApp</a>
+          <a className="flink" href={`mailto:${MAIL}`}>Email Us</a>
+          <a className="flink" href={IG} target="_blank" rel="noreferrer">Instagram</a>
         </div>
-        <div style={{ opacity: 0.3, fontSize: "0.75rem" }}>
-          © 2025 Chitrakala Invitations. All rights reserved.
-        </div>
+        <div style={{ opacity: 0.3, fontSize: "0.75rem" }}>© 2025 Chitrakala Invitations. All rights reserved.</div>
       </footer>
 
-      {showLogin && (
-        <LoginModal onClose={() => setShowLogin(false)} onLogin={handleLogin} />
-      )}
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={handleLogin} />}
 
       <div className="toast-wrap">
-        {toasts.map((t) => (
-          <div key={t.id} className="toast">
-            {t.msg}
-          </div>
-        ))}
+        {toasts.map((t) => <div key={t.id} className="toast">{t.msg}</div>)}
       </div>
     </>
   );
