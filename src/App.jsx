@@ -3,36 +3,73 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  STEP 1 — Fill in your own keys before running
+//  CONFIGURATION
+//  Two ways to set your keys — pick ONE:
+//
+//  OPTION A (Vite .env file — recommended for Vercel deploys)
+//    Create a file called  .env  in your project root:
+//      VITE_SUPABASE_URL=https://xxxx.supabase.co
+//      VITE_SUPABASE_ANON=eyJh...
+//    Then redeploy on Vercel and add the same vars in:
+//      Vercel Dashboard → Your Project → Settings → Environment Variables
+//
+//  OPTION B (hardcode — quick local test only, never commit to git)
+//    Replace the empty strings below directly.
 // ══════════════════════════════════════════════════════════════════════════════
-//
-//  SUPABASE
-//  Go to: supabase.com → your project → Settings → API
-//    SUPABASE_URL  = "Project URL"  (looks like https://xxxx.supabase.co)
-//    SUPABASE_ANON = "anon / public" key
-//
-//  EMAILJS  (for new-device login alert)
-//  Go to: emailjs.com → Email Services → create service  → copy Service ID
-//                     → Email Templates → create template → copy Template ID
-//                     → Account → copy Public Key
-//  In your EmailJS template use these variables:
-//    {{to_email}}  {{user_name}}  {{device_info}}  {{login_time}}
-//
-// ══════════════════════════════════════════════════════════════════════════════
-const SUPABASE_URL  = "https://YOUR_PROJECT.supabase.co";   // ← replace
-const SUPABASE_ANON = "YOUR_ANON_KEY";                       // ← replace
-
-const EMAILJS_PUBLIC_KEY   = "sMgdbh9Kiv0o3szux";           // your existing key
-const EMAILJS_SERVICE_ID   = "service_fuq1yop";             // your existing service
-const EMAILJS_DEVICE_TPL   = "template_device_login";       // ← NEW template for device alert
-const EMAILJS_ENQUIRY_TPL  = "template_u46iezf";            // your existing enquiry template
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient }  from "@supabase/supabase-js";
 import emailjs           from "@emailjs/browser";
 
+// ── Read from Vite env first; fall back to hardcoded strings ─────────────────
+const SUPABASE_URL  =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL)
+    || "https://YOUR_PROJECT.supabase.co";   // ← OPTION B: replace this
+
+const SUPABASE_ANON =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_ANON)
+    || "YOUR_ANON_KEY";                       // ← OPTION B: replace this
+
+const EMAILJS_PUBLIC_KEY  = "sMgdbh9Kiv0o3szux";
+const EMAILJS_SERVICE_ID  = "service_fuq1yop";
+const EMAILJS_DEVICE_TPL  = "template_device_login";
+const EMAILJS_ENQUIRY_TPL = "template_u46iezf";
+
+// ─── GUARD: catch placeholder/empty keys before any network call ──────────────
+// "Failed to fetch" is almost always caused by the URL still being a placeholder.
+if (
+  !SUPABASE_URL ||
+  SUPABASE_URL.includes("YOUR_PROJECT") ||
+  !SUPABASE_ANON ||
+  SUPABASE_ANON === "YOUR_ANON_KEY"
+) {
+  const msg =
+    "⛔ Supabase keys are not set.\n\n" +
+    "Either:\n" +
+    "  1. Create a .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON\n" +
+    "  2. Or replace the placeholder strings at the top of App.jsx\n\n" +
+    "Then restart the dev server (npm run dev) or redeploy on Vercel.";
+  // Show a visible alert so the error is obvious, not buried in the console
+  // eslint-disable-next-line no-alert
+  alert(msg);
+  throw new Error(msg);
+}
+
 // ─── SUPABASE CLIENT ──────────────────────────────────────────────────────────
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
+  // Explicit fetch keeps things working even in strict browser environments
+  global: { fetch: (...args) => fetch(...args) },
+});
+
+// ── Quick connectivity check printed to console on startup ───────────────────
+supabase.from("templates").select("id", { count: "exact", head: true }).then(({ error }) => {
+  if (error) {
+    console.error("⛔ Supabase connectivity check FAILED:", error.message);
+    console.error("   URL used:", SUPABASE_URL);
+  } else {
+    console.log("✅ Supabase connected successfully →", SUPABASE_URL);
+  }
+});
 
 // ─── EMAILJS INIT ─────────────────────────────────────────────────────────────
 emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
@@ -98,33 +135,68 @@ async function fetchTemplates(isAdmin = false) {
 }
 
 // ─── SUPABASE STORAGE: upload a File object, return public URL ───────────────
-// Bucket name: "templates-media"  (create it in Supabase → Storage, set to Public)
+// Bucket name must exactly match what you created in Supabase → Storage.
+// The fix_policies.sql we ran earlier created "templates-media" — using that.
 const STORAGE_BUCKET = "templates-media";
 
 async function uploadMediaFile(file) {
-  // Unique path: timestamp + original filename to avoid collisions
-  const ext      = file.name.split(".").pop();
-  const filePath = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+  // ── Pre-flight checks ────────────────────────────────────────────────────
+  if (!file || !(file instanceof File)) {
+    throw new Error("uploadMediaFile: no valid File object received.");
+  }
+  console.log("[upload] ▶ starting", {
+    name: file.name,
+    type: file.type,
+    size: `${(file.size / 1024).toFixed(1)} KB`,
+    bucket: STORAGE_BUCKET,
+    supabaseUrl: SUPABASE_URL,
+  });
 
-  console.log("[upload] starting →", filePath, file.type, file.size, "bytes");
+  // ── Build a unique storage path ──────────────────────────────────────────
+  const ext      = file.name.split(".").pop().toLowerCase();
+  const safeName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
-  const { error: uploadError } = await supabase.storage
+  // ── Upload to Supabase Storage ───────────────────────────────────────────
+  const { data: uploadData, error: uploadError } = await supabase.storage
     .from(STORAGE_BUCKET)
-    .upload(filePath, file, { contentType: file.type, upsert: false });
+    .upload(safeName, file, {
+      contentType: file.type || "application/octet-stream",
+      upsert:      false,   // never silently overwrite
+      cacheControl: "3600",
+    });
 
   if (uploadError) {
-    console.error("[upload] failed:", uploadError.message);
+    // Print the full error object — this is the key diagnostic for "Failed to fetch"
+    console.error("[upload] ✖ storage.upload failed:", {
+      message:  uploadError.message,
+      error:    uploadError.error,
+      status:   uploadError.statusCode,
+      // If message is "Failed to fetch" the URL or anon key is wrong
+      hint: uploadError.message === "Failed to fetch"
+        ? "CHECK: Is SUPABASE_URL correct? Is the anon key valid? Is the bucket 'templates-media' created and public?"
+        : "Check Supabase Dashboard → Storage → Logs for more detail.",
+    });
     throw new Error("File upload failed: " + uploadError.message);
   }
 
+  console.log("[upload] ✔ file stored at:", uploadData?.path);
+
+  // ── Get the permanent public URL (no network call — purely local) ────────
   const { data: urlData } = supabase.storage
     .from(STORAGE_BUCKET)
-    .getPublicUrl(filePath);
+    .getPublicUrl(safeName);
 
-  if (!urlData?.publicUrl) throw new Error("Could not get public URL for uploaded file.");
+  const publicUrl = urlData?.publicUrl;
+  if (!publicUrl) {
+    throw new Error(
+      "getPublicUrl returned nothing. Make sure the bucket '" +
+      STORAGE_BUCKET +
+      "' exists and is set to Public in Supabase → Storage."
+    );
+  }
 
-  console.log("[upload] success →", urlData.publicUrl);
-  return urlData.publicUrl;
+  console.log("[upload] ✔ public URL:", publicUrl);
+  return publicUrl;
 }
 
 // Insert a new template  (tpl._file may be a raw File object from <input type="file">)
@@ -448,7 +520,8 @@ function useToast() {
 // ─── TEMPLATE CARD (unchanged UI) ────────────────────────────────────────────
 function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }) {
   const waMsg = encodeURIComponent(`Hi, I'm interested in this invitation template: ${tpl.title}`);
-  const isVideo = tpl.image?.startsWith("data:video");
+  const isVideo = tpl.image?.startsWith("data:video") ||
+    /\.(mp4|webm|ogg|mov)(\?|$)/i.test(tpl.image ?? "");
 
   return (
     <div className="tcard" style={{ animationDelay: `${delay}ms`, opacity: !tpl.is_active && isAdmin ? 0.58 : 1 }}>
@@ -796,7 +869,7 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
               {templates.map((t) => (
                 <tr key={t.id}>
                   <td>
-                    {t.image?.startsWith("data:video") ? (
+                    {(t.image?.startsWith("data:video") || /\.(mp4|webm|ogg|mov)(\?|$)/i.test(t.image ?? "")) ? (
                       <video src={t.image} className="thumb" muted style={{ borderRadius: 8, border: "1px solid var(--pk3)" }} />
                     ) : (
                       <img className="thumb" src={t.image} alt={t.title}
