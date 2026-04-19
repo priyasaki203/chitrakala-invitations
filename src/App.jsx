@@ -19,8 +19,8 @@
 //    {{to_email}}  {{user_name}}  {{device_info}}  {{login_time}}
 //
 // ══════════════════════════════════════════════════════════════════════════════
-const SUPABASE_URL  = "https://myenjbljtvlwptlxzlhh.supabase.co";   // ← replace
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15ZW5qYmxqdHZsd3B0bHh6bGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTk1NzAsImV4cCI6MjA5MjA5NTU3MH0.zLEW6w3nZSViXMAvyuxR72HrhCIIuAkmBvTtV27Jv5Q";                       // ← replace
+const SUPABASE_URL  = "https://YOUR_PROJECT.supabase.co";   // ← replace
+const SUPABASE_ANON = "YOUR_ANON_KEY";                       // ← replace
 
 const EMAILJS_PUBLIC_KEY   = "sMgdbh9Kiv0o3szux";           // your existing key
 const EMAILJS_SERVICE_ID   = "service_fuq1yop";             // your existing service
@@ -97,26 +97,88 @@ async function fetchTemplates(isAdmin = false) {
   return data;
 }
 
-// Insert a new template
+// ─── SUPABASE STORAGE: upload a File object, return public URL ───────────────
+// Bucket name: "templates-media"  (create it in Supabase → Storage, set to Public)
+const STORAGE_BUCKET = "templates-media";
+
+async function uploadMediaFile(file) {
+  // Unique path: timestamp + original filename to avoid collisions
+  const ext      = file.name.split(".").pop();
+  const filePath = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+  console.log("[upload] starting →", filePath, file.type, file.size, "bytes");
+
+  const { error: uploadError } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(filePath, file, { contentType: file.type, upsert: false });
+
+  if (uploadError) {
+    console.error("[upload] failed:", uploadError.message);
+    throw new Error("File upload failed: " + uploadError.message);
+  }
+
+  const { data: urlData } = supabase.storage
+    .from(STORAGE_BUCKET)
+    .getPublicUrl(filePath);
+
+  if (!urlData?.publicUrl) throw new Error("Could not get public URL for uploaded file.");
+
+  console.log("[upload] success →", urlData.publicUrl);
+  return urlData.publicUrl;
+}
+
+// Insert a new template  (tpl._file may be a raw File object from <input type="file">)
 async function insertTemplate(tpl) {
+  // If there is a raw File attached, upload it first and use the public URL
+  let imageUrl = tpl.image;
+  if (tpl._file instanceof File) {
+    imageUrl = await uploadMediaFile(tpl._file);
+  }
+
+  console.log("[insertTemplate] inserting with imageUrl:", imageUrl?.substring(0, 80));
+
   const { data, error } = await supabase
     .from("templates")
-    .insert([{ title: tpl.title, category: tpl.category, price: tpl.price, image: tpl.image, is_active: tpl.is_active }])
+    .insert([{ title: tpl.title, category: tpl.category, price: tpl.price, image: imageUrl, is_active: tpl.is_active }])
     .select()
     .single();
-  if (error) throw new Error(error.message);
+
+  if (error) {
+    console.error("[insertTemplate] error:", error.message, error.details, error.hint);
+    throw new Error(error.message);
+  }
+  console.log("[insertTemplate] done:", data.id);
   return data;
 }
 
-// Update an existing template
+// Update an existing template  (tpl._file may be a raw File object)
 async function updateTemplate(tpl) {
+  // If a new file was picked, upload it; otherwise keep the existing URL
+  let imageUrl = tpl.image;
+  if (tpl._file instanceof File) {
+    imageUrl = await uploadMediaFile(tpl._file);
+  }
+
+  console.log("[updateTemplate] id:", tpl.id, "imageUrl:", imageUrl?.substring(0, 80));
+
   const { data, error } = await supabase
     .from("templates")
-    .update({ title: tpl.title, category: tpl.category, price: tpl.price, image: tpl.image, is_active: tpl.is_active })
+    .update({
+      title:     tpl.title,
+      category:  tpl.category,
+      price:     tpl.price,
+      image:     imageUrl,
+      is_active: tpl.is_active,
+    })
     .eq("id", tpl.id)
     .select()
     .single();
-  if (error) throw new Error(error.message);
+
+  if (error) {
+    console.error("[updateTemplate] error:", error.message, error.details, error.hint);
+    throw new Error(error.message);
+  }
+  console.log("[updateTemplate] done:", data.id);
   return data;
 }
 
@@ -520,38 +582,71 @@ function LoginModal({ onClose, onLogin }) {
   );
 }
 
-// ─── TEMPLATE FORM (unchanged UI) ────────────────────────────────────────────
+// ─── TEMPLATE FORM ────────────────────────────────────────────────────────────
 function TplForm({ tpl, onClose, onSave }) {
   const blank = { title: "", category: "wedding", price: "", image: "", is_active: true };
-  const [f, setF]           = useState(tpl ? { ...tpl } : blank);
-  const [err, setErr]       = useState("");
+
+  const [f, setF]             = useState(tpl ? { ...tpl } : blank);
+  const [err, setErr]         = useState("");
+  const [success, setSuccess] = useState(false);
+  // preview is an object URL (for new picks) or the existing https URL
   const [preview, setPreview] = useState(tpl?.image || "");
-  const [saving, setSaving] = useState(false);
+  // _file holds the raw File object when user picks a new file
+  const [_file, setFile]      = useState(null);
+  const [saving, setSaving]   = useState(false);
+
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
 
   const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => { const b = ev.target.result; set("image", b); setPreview(b); };
-    reader.readAsDataURL(file);
+    // Store the raw File for upload; create a temporary object URL for preview
+    setFile(file);
+    const objectUrl = URL.createObjectURL(file);
+    setPreview(objectUrl);
+    // We no longer embed base64 into f.image — the upload helper will get the URL
+    setErr("");
   };
 
   const save = async () => {
-    if (!f.title.trim())             return setErr("Title is required.");
-    if (!f.price || Number(f.price) <= 0) return setErr("Enter a valid price.");
-    if (!f.image)                    return setErr("Please upload an image or video.");
+    setErr("");
+    setSuccess(false);
+
+    // ── Validation ──────────────────────────────────────────────────────────
+    if (!f.title.trim())                   return setErr("Title is required.");
+    if (!f.price || Number(f.price) <= 0)  return setErr("Enter a valid price.");
+    // Must have either an existing URL or a freshly picked file
+    if (!f.image && !_file)                return setErr("Please upload an image or video.");
+
     setSaving(true);
+    console.log("[TplForm] save clicked — id:", tpl?.id, "newFile:", _file?.name ?? "none");
+
     try {
-      await onSave({ ...f, price: Number(f.price), id: tpl?.id });
+      // Pass both form fields AND the raw File (_file) so the upload helper can
+      // upload it to Storage and get a public URL before hitting the DB.
+      await onSave({
+        ...f,
+        price: Number(f.price),
+        id:    tpl?.id,
+        _file, // raw File | null
+      });
+
+      console.log("[TplForm] onSave resolved successfully");
+      setSuccess(true);
+      // Close after a short delay so user sees the ✅
+      setTimeout(() => onClose(), 900);
     } catch (e) {
+      console.error("[TplForm] save error:", e.message);
       setErr(e.message || "Save failed. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
-  const isVideo = preview?.startsWith("data:video");
+  // Detect video by MIME type of the picked file, or by URL extension/content-type
+  const isVideo = _file
+    ? _file.type.startsWith("video/")
+    : preview?.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) != null;
 
   return (
     <div className="overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -560,6 +655,7 @@ function TplForm({ tpl, onClose, onSave }) {
         <div className="m-icon">{tpl ? "✏️" : "✨"}</div>
         <div className="m-title">{tpl ? "Edit Template" : "Add Template"}</div>
         <div className="m-sub">{tpl ? "Update the details below" : "Fill in the details for the new design"}</div>
+
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
           <div className="fg" style={{ gridColumn: "1/-1" }}>
             <label className="flabel">Title *</label>
@@ -579,16 +675,23 @@ function TplForm({ tpl, onClose, onSave }) {
             <input className="fi" type="number" placeholder="999" value={f.price}
               onChange={(e) => set("price", e.target.value)} />
           </div>
+
           <div className="fg" style={{ gridColumn: "1/-1" }}>
             <label className="flabel">Image / Video *</label>
             <input className="fi" type="file" accept="image/*,video/*" onChange={handleFile}
               style={{ padding: "7px 10px", cursor: "pointer" }} />
-            {tpl?.image && !preview.startsWith("data:") && (
+            {/* Show filename of new pick, or note that existing media is kept */}
+            {_file ? (
+              <div style={{ fontSize: "0.75rem", color: "var(--pk2)", marginTop: 4 }}>
+                ✅ New file selected: {_file.name}
+              </div>
+            ) : tpl?.image ? (
               <div style={{ fontSize: "0.75rem", color: "var(--txt3)", marginTop: 4 }}>
                 No new file chosen — existing media will be kept.
               </div>
-            )}
+            ) : null}
           </div>
+
           {preview && (
             <div style={{ gridColumn: "1/-1", borderRadius: 10, overflow: "hidden", border: "1.5px solid var(--pk3)", maxHeight: 180 }}>
               {isVideo ? (
@@ -598,6 +701,7 @@ function TplForm({ tpl, onClose, onSave }) {
               )}
             </div>
           )}
+
           <div className="fg" style={{ gridColumn: "1/-1", display: "flex", alignItems: "center", gap: 10 }}>
             <input type="checkbox" id="act" checked={f.is_active} onChange={(e) => set("is_active", e.target.checked)}
               style={{ accentColor: "var(--pk)", width: 16, height: 16, cursor: "pointer" }} />
@@ -606,9 +710,12 @@ function TplForm({ tpl, onClose, onSave }) {
             </label>
           </div>
         </div>
-        {err && <div className="errmsg">⚠️ {err}</div>}
+
+        {err     && <div className="errmsg" style={{ marginTop: 8 }}>⚠️ {err}</div>}
+        {success && <div style={{ fontSize: "0.85rem", color: "#27ae60", marginTop: 8, textAlign: "center" }}>✅ Saved successfully!</div>}
+
         <button className="sub-btn" onClick={save} disabled={saving}>
-          {saving ? "Saving..." : tpl ? "Save Changes" : "Add Template"}
+          {saving ? "Saving…" : tpl ? "Save Changes" : "Add Template"}
         </button>
       </div>
     </div>
