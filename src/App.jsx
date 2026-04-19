@@ -23,8 +23,6 @@ const MAIL = "priyasaki190@gmail.com";
 const IG   = "https://instagram.com/priyasaki__19";
 
 // ─── HELPER: detect if URL is a video ────────────────────────────────────────
-// Works for Supabase Storage URLs like:
-//   https://xyz.supabase.co/storage/v1/object/public/templates-media/file.mp4
 function isVideoUrl(url) {
   if (!url) return false;
   if (url.startsWith("data:video")) return true;
@@ -211,22 +209,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .tcard-img{width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
 .tcard:hover .tcard-img{transform:scale(1.09)}
 
-/* Video thumbnail inside card */
 .tcard-vid-thumb{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
 .tcard:hover .tcard-vid-thumb{transform:scale(1.09)}
 
-/* Dark gradient overlay on hover */
 .tcard-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(26,10,18,0.55) 0%,transparent 55%);opacity:0;transition:opacity 0.3s;pointer-events:none}
 .tcard:hover .tcard-ov{opacity:1}
 
-/* Play button overlay — centered on video thumbnail */
 .play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .play-btn{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.92);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(0,0,0,0.28);transition:transform 0.22s,box-shadow 0.22s,background 0.22s}
 .tcard-img-wrap:hover .play-btn{transform:scale(1.15);box-shadow:0 6px 30px rgba(232,24,109,0.5);background:#fff}
-/* CSS triangle as play arrow */
 .play-arrow{width:0;height:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:20px solid var(--pk);margin-left:4px}
 
-/* "VIDEO" pill badge */
 .vid-badge{position:absolute;bottom:10px;left:12px;background:rgba(0,0,0,0.62);color:#fff;font-size:0.64rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:0.6px;backdrop-filter:blur(4px)}
 
 .cat-badge{position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);color:var(--pk2);font-size:0.7rem;font-weight:700;padding:4px 12px;border-radius:var(--r3);text-transform:uppercase;letter-spacing:0.6px;border:1px solid rgba(232,24,109,0.12)}
@@ -248,46 +241,172 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .acb:hover{transform:scale(1.12)}
 
 /* ═══════════════════════════════════════════════════
-   VIDEO PLAYER MODAL
+   VIDEO CHOICE DIALOG
    ═══════════════════════════════════════════════════ */
-.vmodal-overlay{
+.vcd-overlay{
   position:fixed;inset:0;
-  background:rgba(0,0,0,0.90);
+  background:rgba(10,0,20,0.72);
+  backdrop-filter:blur(10px);
+  z-index:800;
+  display:flex;align-items:center;justify-content:center;
+  padding:1rem;
+  animation:fadeIn 0.18s ease;
+}
+.vcd-box{
+  background:#fff;
+  border-radius:22px;
+  padding:2rem 2.2rem 2rem;
+  width:100%;max-width:360px;
+  box-shadow:0 30px 80px rgba(232,24,109,0.22),0 4px 24px rgba(0,0,0,0.18);
+  animation:fadeUp 0.22s ease;
+  text-align:center;
+  position:relative;
+}
+.vcd-close{
+  position:absolute;top:14px;right:14px;
+  width:30px;height:30px;border-radius:50%;
+  background:var(--pk4);border:none;cursor:pointer;
+  color:var(--pk);font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--tr);
+}
+.vcd-close:hover{background:var(--pk);color:#fff;transform:rotate(90deg)}
+.vcd-thumb-wrap{
+  width:100%;height:160px;
+  border-radius:14px;overflow:hidden;
+  background:var(--pk5);
+  margin-bottom:1.4rem;
+  position:relative;
+  border:1.5px solid var(--pk3);
+}
+.vcd-thumb{width:100%;height:100%;object-fit:cover;display:block}
+.vcd-play-pill{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  background:rgba(232,24,109,0.92);
+  color:#fff;
+  font-size:0.72rem;font-weight:700;letter-spacing:0.6px;
+  padding:4px 14px;border-radius:20px;
+  display:flex;align-items:center;gap:5px;
+  backdrop-filter:blur(4px);
+  white-space:nowrap;
+}
+.vcd-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.25rem;font-weight:700;color:var(--txt);
+  margin-bottom:4px;
+}
+.vcd-subtitle{font-size:0.8rem;color:var(--txt3);margin-bottom:1.5rem;line-height:1.5}
+.vcd-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vcd-btn{
+  padding:12px 10px;
+  border-radius:12px;
+  border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  font-size:0.88rem;font-weight:700;
+  transition:all 0.22s cubic-bezier(0.4,0,0.2,1);
+  display:flex;flex-direction:column;
+  align-items:center;gap:5px;
+}
+.vcd-btn-icon{font-size:1.4rem}
+.vcd-btn.preview{
+  background:var(--pk4);
+  border:1.5px solid var(--pk3);
+  color:var(--pk2);
+}
+.vcd-btn.preview:hover{
+  background:var(--pk);border-color:var(--pk);color:#fff;
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(232,24,109,0.32);
+}
+.vcd-btn.fullscreen{
+  background:linear-gradient(135deg,var(--pk),var(--pk2));
+  color:#fff;
+  box-shadow:0 4px 16px rgba(232,24,109,0.3);
+}
+.vcd-btn.fullscreen:hover{
+  box-shadow:0 8px 28px rgba(232,24,109,0.48);
+  transform:translateY(-2px);
+}
+
+/* ═══════════════════════════════════════════════════
+   VIDEO PREVIEW MODAL
+   ═══════════════════════════════════════════════════ */
+.vpm-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.92);
   z-index:900;
   display:flex;align-items:center;justify-content:center;
   padding:1rem;
   animation:fadeIn 0.2s ease;
-  backdrop-filter:blur(10px);
+  backdrop-filter:blur(12px);
 }
-.vmodal-box{
+.vpm-box{
   position:relative;
-  width:100%;max-width:860px;
+  width:100%;max-width:880px;
   background:#111;
   border-radius:18px;
   overflow:hidden;
-  box-shadow:0 40px 100px rgba(0,0,0,0.8);
+  box-shadow:0 40px 100px rgba(0,0,0,0.85),0 0 0 1px rgba(255,255,255,0.06);
   animation:fadeUp 0.25s ease;
 }
-.vmodal-close{
+.vpm-close{
   position:absolute;top:12px;right:12px;z-index:10;
   width:38px;height:38px;border-radius:50%;
-  background:rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.14);
   border:none;color:#fff;font-size:15px;
   cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   backdrop-filter:blur(6px);
   transition:background 0.2s,transform 0.2s;
 }
-.vmodal-close:hover{background:var(--pk);transform:rotate(90deg)}
-.vmodal-video{width:100%;max-height:82vh;display:block;outline:none}
-.vmodal-title{
+.vpm-close:hover{background:var(--pk);transform:rotate(90deg)}
+.vpm-fs-btn{
+  position:absolute;top:12px;right:58px;z-index:10;
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,0.14);
+  border:none;color:#fff;font-size:15px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);
+  transition:background 0.2s;
+}
+.vpm-fs-btn:hover{background:rgba(255,255,255,0.28)}
+.vpm-video{
+  width:100%;max-height:82vh;display:block;outline:none;
+  transition:opacity 0.3s ease;
+}
+.vpm-video.loading{opacity:0}
+.vpm-video.ready{opacity:1}
+.vpm-loading{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:12px;
+  background:#111;
+  transition:opacity 0.3s ease;
+  pointer-events:none;
+}
+.vpm-loading.hidden{opacity:0}
+.vpm-spinner{
+  width:42px;height:42px;
+  border:3px solid rgba(255,255,255,0.12);
+  border-top-color:var(--pk);
+  border-radius:50%;
+  animation:spin 0.75s linear infinite;
+}
+.vpm-load-text{
+  font-size:0.82rem;color:rgba(255,255,255,0.45);
+  font-family:'DM Sans',sans-serif;letter-spacing:0.5px;
+}
+.vpm-title{
   position:absolute;bottom:0;left:0;right:0;
-  padding:16px 20px;
-  background:linear-gradient(to top,rgba(0,0,0,0.80),transparent);
+  padding:18px 20px 16px;
+  background:linear-gradient(to top,rgba(0,0,0,0.82),transparent);
   color:#fff;
   font-family:'Cormorant Garamond',serif;
-  font-size:1.2rem;font-weight:600;
+  font-size:1.15rem;font-weight:600;
   pointer-events:none;
+  display:flex;align-items:center;gap:8px;
 }
 
 /* ── GENERAL MODAL ── */
@@ -370,7 +489,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
   .hero-stats{gap:1.5rem}.sep{display:none}
   .fbar{padding:0.7rem 1rem}.main{padding:2rem 1rem 3rem}
   .adm{padding:1rem}.adm-hdr{padding:1.2rem}.adm-tabs{flex-direction:column}
-  .vmodal-box{border-radius:10px}
+  .vpm-box{border-radius:10px}.vcd-box{border-radius:14px}
 }
 `;
 
@@ -405,33 +524,82 @@ function useToast() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  VIDEO PLAYER MODAL
-//  Opens when user clicks on a video card.
-//  - Dark blurred overlay
-//  - <video> tag with controls + autoplay
-//  - Close on X button, click-outside, or Escape key
+//  VIDEO CHOICE DIALOG
+//  Shows when user clicks a video card thumbnail.
+//  Two options: "Preview" (centered modal) or "Full Preview" (fullscreen).
 // ═══════════════════════════════════════════════════════════════════════════════
-function VideoModal({ url, title, onClose }) {
-  const videoRef = useRef(null);
+function VideoChoiceDialog({ url, title, onClose, onPreview, onFullPreview }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
-  // Close on Escape key
+  return (
+    <div
+      className="vcd-overlay"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="vcd-box">
+        <button className="vcd-close" onClick={onClose} aria-label="Close">✕</button>
+
+        {/* Live video thumbnail */}
+        <div className="vcd-thumb-wrap">
+          <video
+            className="vcd-thumb"
+            src={url}
+            muted
+            preload="metadata"
+            playsInline
+            onLoadedMetadata={(e) => { e.target.currentTime = 0.1; }}
+          />
+          <div className="vcd-play-pill">▶ VIDEO</div>
+        </div>
+
+        <div className="vcd-title">{title}</div>
+        <div className="vcd-subtitle">How would you like to watch this?</div>
+
+        <div className="vcd-btns">
+          {/* Opens inline centered modal */}
+          <button className="vcd-btn preview" onClick={onPreview}>
+            <span className="vcd-btn-icon">🎬</span>
+            Preview
+          </button>
+          {/* Opens native fullscreen / new tab fallback */}
+          <button className="vcd-btn fullscreen" onClick={onFullPreview}>
+            <span className="vcd-btn-icon">⛶</span>
+            Full Preview
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  VIDEO PREVIEW MODAL
+//  Centered dark modal with autoplay + loading spinner.
+//  Includes an in-modal fullscreen button (⛶) as a shortcut.
+// ═══════════════════════════════════════════════════════════════════════════════
+function VideoPreviewModal({ url, title, onClose }) {
+  const videoRef       = useRef(null);
+  const [ready, setReady] = useState(false);
+
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") handleClose(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  // Try autoplay once the video element is ready
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // Browser blocked autoplay (needs user gesture) — user can press play manually
-      });
-    }
-  }, []);
+  // Autoplay once buffered enough
+  const handleCanPlay = () => {
+    setReady(true);
+    videoRef.current?.play().catch(() => {
+      // Browser blocked autoplay — user can press play manually
+    });
+  };
 
   const handleClose = () => {
-    // Pause + reset before closing so audio stops immediately
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
@@ -439,27 +607,46 @@ function VideoModal({ url, title, onClose }) {
     onClose();
   };
 
+  // Fullscreen shortcut button inside modal
+  const handleFullscreen = () => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    if      (vid.requestFullscreen)          vid.requestFullscreen();
+    else if (vid.webkitRequestFullscreen)    vid.webkitRequestFullscreen();
+    else if (vid.mozRequestFullScreen)       vid.mozRequestFullScreen();
+  };
+
   return (
     <div
-      className="vmodal-overlay"
+      className="vpm-overlay"
       onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
-      <div className="vmodal-box">
-        {/* ✕ Close button */}
-        <button className="vmodal-close" onClick={handleClose} aria-label="Close">✕</button>
+      <div className="vpm-box">
+        <button className="vpm-close" onClick={handleClose} aria-label="Close">✕</button>
+        <button className="vpm-fs-btn" onClick={handleFullscreen} title="Fullscreen" aria-label="Fullscreen">⛶</button>
 
-        {/* Video player */}
+        {/* Loading spinner — fades out once video is ready */}
+        <div className={`vpm-loading${ready ? " hidden" : ""}`}>
+          <div className="vpm-spinner" />
+          <div className="vpm-load-text">Loading video…</div>
+        </div>
+
+        {/* The actual video player */}
         <video
           ref={videoRef}
-          className="vmodal-video"
+          className={`vpm-video${ready ? " ready" : " loading"}`}
           src={url}
           controls
           playsInline
           preload="auto"
+          onCanPlay={handleCanPlay}
         />
 
-        {/* Title gradient at bottom */}
-        {title && <div className="vmodal-title">▶ {title}</div>}
+        {title && (
+          <div className="vpm-title">
+            <span>▶</span>{title}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -467,16 +654,64 @@ function VideoModal({ url, title, onClose }) {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  TEMPLATE CARD
-//  — Images: displayed normally with hover zoom
-//  — Videos: shows a static thumbnail + centered play button overlay
-//             clicking the thumbnail opens VideoModal
+//  Images → nothing on click (unchanged behavior)
+//  Videos → click thumbnail → VideoChoiceDialog
+//            "Preview"      → VideoPreviewModal
+//            "Full Preview" → native fullscreen (new tab fallback for iOS)
 // ═══════════════════════════════════════════════════════════════════════════════
 function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }) {
-  // Local state: is the video modal open?
-  const [videoOpen, setVideoOpen] = useState(false);
+  // null | "choice" | "preview"
+  const [videoMode, setVideoMode] = useState(null);
 
   const waMsg = encodeURIComponent(`Hi, I'm interested in this invitation template: ${tpl.title}`);
-  const isVid = isVideoUrl(tpl.image); // ← uses our helper function
+  const isVid = isVideoUrl(tpl.image);
+
+  // ── Full Preview: native fullscreen via a temporary <video> element ────────
+  const handleFullPreview = () => {
+    setVideoMode(null); // close dialog first
+
+    const vid         = document.createElement("video");
+    vid.src           = tpl.image;
+    vid.controls      = true;
+    vid.autoplay      = true;
+    vid.playsInline   = true;
+    vid.style.cssText =
+      "position:fixed;inset:0;width:100%;height:100%;background:#000;z-index:9999;outline:none;";
+
+    document.body.appendChild(vid);
+
+    const cleanup = () => {
+      vid.pause();
+      if (document.body.contains(vid)) document.body.removeChild(vid);
+      document.removeEventListener("fullscreenchange", onFsChange);
+      document.removeEventListener("webkitfullscreenchange", onFsChange);
+    };
+
+    const onFsChange = () => {
+      const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+      if (!fsEl) cleanup(); // user exited fullscreen → remove element
+    };
+
+    document.addEventListener("fullscreenchange", onFsChange);
+    document.addEventListener("webkitfullscreenchange", onFsChange);
+
+    const req =
+      vid.requestFullscreen      ||
+      vid.webkitRequestFullscreen ||
+      vid.mozRequestFullScreen;
+
+    if (req) {
+      req.call(vid).catch(() => {
+        // Fullscreen blocked (e.g. iOS Safari) → fallback to new tab
+        cleanup();
+        window.open(tpl.image, "_blank", "noopener,noreferrer");
+      });
+    } else {
+      // No fullscreen API → new tab
+      cleanup();
+      window.open(tpl.image, "_blank", "noopener,noreferrer");
+    }
+  };
 
   return (
     <>
@@ -490,17 +725,12 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
         {/* ── Media thumbnail area ─────────────────────────────────────── */}
         <div
           className="tcard-img-wrap"
-          onClick={() => isVid && setVideoOpen(true)}
+          onClick={() => isVid && setVideoMode("choice")}
           style={{ cursor: isVid ? "pointer" : "default" }}
         >
           {isVid ? (
             <>
-              {/*
-                We use a muted <video> element as the thumbnail.
-                preload="metadata" loads just enough to show the first frame.
-                onLoadedMetadata seeks to 0.1s so the browser paints a real frame
-                instead of a black box on Chrome/Safari.
-              */}
+              {/* Muted thumbnail — seeks to 0.1s so first frame renders */}
               <video
                 className="tcard-vid-thumb"
                 src={tpl.image}
@@ -509,18 +739,12 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
                 playsInline
                 onLoadedMetadata={(e) => { e.target.currentTime = 0.1; }}
               />
-
-              {/* Hover gradient overlay */}
               <div className="tcard-ov" />
-
-              {/* Centred play button — CSS only, no extra JS */}
               <div className="play-overlay">
                 <div className="play-btn">
                   <div className="play-arrow" />
                 </div>
               </div>
-
-              {/* Small "VIDEO" badge at bottom-left */}
               <span className="vid-badge">▶ VIDEO</span>
             </>
           ) : (
@@ -534,19 +758,18 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
                     "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=420&fit=crop";
                 }}
               />
-              {/* Hover gradient overlay */}
               <div className="tcard-ov" />
             </>
           )}
 
-          {/* Category badge — always on top */}
           <span className="cat-badge">
-            {tpl.category === "wedding" ? "💍 Wedding"
-              : tpl.category === "housewarming" ? "🏡 Housewarming"
+            {tpl.category === "wedding"
+              ? "💍 Wedding"
+              : tpl.category === "housewarming"
+              ? "🏡 Housewarming"
               : "🎂 Birthday"}
           </span>
 
-          {/* Admin controls — stopPropagation so click doesn't open modal */}
           {isAdmin && (
             <div className="adm-ctrl">
               <button className="acb" title={tpl.is_active ? "Deactivate" : "Activate"}
@@ -579,12 +802,23 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
         </div>
       </div>
 
-      {/* Video modal — mounted outside the card so it overlays everything */}
-      {videoOpen && (
-        <VideoModal
+      {/* ── Step 1: Choice dialog ── */}
+      {videoMode === "choice" && (
+        <VideoChoiceDialog
           url={tpl.image}
           title={tpl.title}
-          onClose={() => setVideoOpen(false)}
+          onClose={() => setVideoMode(null)}
+          onPreview={() => setVideoMode("preview")}
+          onFullPreview={handleFullPreview}
+        />
+      )}
+
+      {/* ── Step 2a: Inline preview modal ── */}
+      {videoMode === "preview" && (
+        <VideoPreviewModal
+          url={tpl.image}
+          title={tpl.title}
+          onClose={() => setVideoMode(null)}
         />
       )}
     </>
