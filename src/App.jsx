@@ -152,7 +152,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 @keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes buffering{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
 
 .hdr{background:rgba(255,255,255,0.97);border-bottom:1px solid rgba(232,24,109,0.10);position:sticky;top:0;z-index:200;box-shadow:0 2px 18px rgba(232,24,109,0.06)}
 .hdr-in{max-width:1280px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:68px}
@@ -212,8 +211,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .tcard-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(26,10,18,0.55) 0%,transparent 55%);opacity:0;transition:opacity 0.3s;pointer-events:none}
 .tcard:hover .tcard-ov{opacity:1}
 .play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.play-btn{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.92);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(0,0,0,0.28);transition:transform 0.22s,box-shadow 0.22s}
-.tcard-img-wrap:hover .play-btn{transform:scale(1.15);box-shadow:0 6px 30px rgba(232,24,109,0.5)}
+.play-btn{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.92);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(0,0,0,0.28)}
 .play-arrow{width:0;height:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:20px solid var(--pk);margin-left:4px}
 .vid-badge{position:absolute;bottom:10px;left:12px;background:rgba(0,0,0,0.62);color:#fff;font-size:0.64rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:0.6px}
 .cat-badge{position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.92);color:var(--pk2);font-size:0.7rem;font-weight:700;padding:4px 12px;border-radius:var(--r3);text-transform:uppercase;letter-spacing:0.6px;border:1px solid rgba(232,24,109,0.12)}
@@ -233,79 +231,140 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .acb{background:rgba(255,255,255,0.9);border:none;border-radius:8px;padding:5px 7px;cursor:pointer;font-size:13px;transition:var(--tr)}
 .acb:hover{transform:scale(1.12)}
 
-/* ── VIDEO CHOICE DIALOG (bottom sheet) ── */
-.vcd-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:800;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.18s ease}
-.vcd-box{background:#fff;border-radius:22px 22px 0 0;padding:1.6rem 1.6rem 2rem;width:100%;max-width:480px;box-shadow:0 -10px 50px rgba(0,0,0,0.3);animation:fadeUp 0.25s ease;position:relative}
-.vcd-handle{width:40px;height:4px;border-radius:4px;background:rgba(0,0,0,0.12);margin:0 auto 1.2rem}
-.vcd-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:var(--pk4);border:none;cursor:pointer;color:var(--pk);font-size:13px;display:flex;align-items:center;justify-content:center}
-.vcd-thumb-wrap{width:100%;height:120px;border-radius:14px;background:linear-gradient(135deg,#2d0818,#1a0a12,#3a1525);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;margin-bottom:1.1rem;position:relative;overflow:hidden}
-.vcd-play-circle{width:52px;height:52px;border-radius:50%;background:rgba(232,24,109,0.9);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(232,24,109,0.45)}
-.vcd-play-tri{width:0;height:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:19px solid #fff;margin-left:4px}
-.vcd-label{font-size:0.7rem;color:rgba(255,255,255,0.6);font-weight:600;letter-spacing:0.8px;text-transform:uppercase}
-.vcd-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:700;color:var(--txt);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.vcd-subtitle{font-size:0.78rem;color:var(--txt3);margin-bottom:1.1rem}
-.vcd-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.vcd-btn{padding:14px 8px;border-radius:14px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:76px;touch-action:manipulation}
-.vcd-btn-icon{font-size:1.5rem}
-.vcd-btn.preview{background:var(--pk4);border:1.5px solid var(--pk3);color:var(--pk2)}
-.vcd-btn.preview:active{background:var(--pk3)}
-.vcd-btn.fullscreen{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff;box-shadow:0 4px 14px rgba(232,24,109,0.3)}
-.vcd-btn.fullscreen:active{opacity:0.85}
+/* ══════════════════════════════════════════════════════
+   VIDEO PLAYER MODAL — full rewrite for Android fix
+   KEY INSIGHT: The black split-screen happened because
+   vpm-overlay used display:flex which split the viewport.
+   Fix: make the overlay position:fixed with full inset:0
+   and the video fills 100vw x 100vh using object-fit:contain.
+   The <video> element itself is the clickable close area.
+   ══════════════════════════════════════════════════════ */
 
-/* ── VIDEO PREVIEW MODAL ── */
+/* Overlay fills the entire screen — no flex splitting */
 .vpm-overlay{
-  position:fixed;inset:0;background:#000;z-index:900;
-  display:flex;align-items:center;justify-content:center;
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:#000;
+  z-index:9000;
   animation:fadeIn 0.15s ease;
-  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* Safe area insets for notch phones */
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
 }
-.vpm-box{position:relative;width:100%;max-width:880px;background:#000}
+
+/* Video fills the full overlay, object-fit:contain avoids cropping */
+.vpm-video{
+  position:absolute;
+  top:0;left:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  background:#000;
+  display:block;
+  outline:none;
+  /* Hidden until video data arrives */
+  opacity:0;
+  transition:opacity 0.3s ease;
+}
+.vpm-video.ready{ opacity:1; }
+
+/* Loading state — centered spinner + text over the black bg */
+.vpm-loading{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+  pointer-events:none;
+  transition:opacity 0.25s ease;
+  z-index:2;
+}
+.vpm-loading.gone{ opacity:0; pointer-events:none; }
+
+.vpm-spinner{
+  width:48px;height:48px;
+  border:3px solid rgba(255,255,255,0.15);
+  border-top-color:var(--pk);
+  border-radius:50%;
+  animation:spin 0.85s linear infinite;
+}
+.vpm-load-text{
+  font-size:0.85rem;
+  color:rgba(255,255,255,0.55);
+  font-family:'DM Sans',sans-serif;
+  text-align:center;
+  line-height:1.5;
+  max-width:220px;
+}
+
+/* Close button — top-right corner, always on top */
 .vpm-close{
-  position:absolute;top:12px;right:12px;z-index:10;
-  width:44px;height:44px;border-radius:50%;
-  background:rgba(0,0,0,0.75);border:1.5px solid rgba(255,255,255,0.3);
-  color:#fff;font-size:18px;cursor:pointer;
+  position:absolute;
+  top:16px;right:16px;
+  z-index:10;
+  width:44px;height:44px;
+  border-radius:50%;
+  background:rgba(0,0,0,0.7);
+  border:1.5px solid rgba(255,255,255,0.3);
+  color:#fff;
+  font-size:20px;
+  cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
 }
-.vpm-close:active{background:var(--pk)}
-.vpm-video{
-  width:100%;
-  /* FIX 1: Use 85vh not 100vh — leaves room for iOS chrome/address bar */
-  max-height:85vh;
-  display:block;object-fit:contain;background:#000;outline:none;
-  /* FIX 2: Fade in only after ready — hides black flash during buffering */
-  opacity:0;transition:opacity 0.25s ease;
+.vpm-close:active{ background:var(--pk); }
+
+/* Error panel */
+.vpm-error{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  z-index:3;text-align:center;
 }
-.vpm-video.ready{opacity:1}
-/* FIX 3: Buffering progress bar — shows user something is happening */
-.vpm-buffer-bar{
-  position:absolute;bottom:0;left:0;right:0;
-  height:3px;background:rgba(255,255,255,0.1);overflow:hidden;
-}
-.vpm-buffer-bar.hidden{display:none}
-.vpm-buffer-fill{
-  height:100%;width:25%;
-  background:var(--pk);
-  animation:buffering 1.2s ease-in-out infinite;
-}
-.vpm-loading{
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:14px;background:#000;
-  transition:opacity 0.25s ease;pointer-events:none;
-}
-.vpm-loading.hidden{opacity:0;pointer-events:none}
-.vpm-spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--pk);border-radius:50%;animation:spin 0.8s linear infinite}
-.vpm-load-text{font-size:0.82rem;color:rgba(255,255,255,0.45);font-family:'DM Sans',sans-serif;text-align:center;padding:0 1rem}
-.vpm-title{position:absolute;bottom:0;left:0;right:0;padding:16px 16px 14px;background:linear-gradient(to top,rgba(0,0,0,0.85),transparent);color:#fff;font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;pointer-events:none}
-/* ── Retry button shown on error ── */
-.vpm-retry{
-  padding:10px 24px;border-radius:var(--r3);
-  background:var(--pk);color:#fff;border:none;
+.vpm-err-text{ font-size:0.85rem;color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif; }
+.vpm-btn{
+  padding:11px 26px;border-radius:var(--r3);border:none;
   font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:700;
-  cursor:pointer;margin-top:8px;touch-action:manipulation;
+  cursor:pointer;touch-action:manipulation;
 }
+.vpm-btn.primary{ background:var(--pk);color:#fff; }
+.vpm-btn.ghost{ background:transparent;color:rgba(255,255,255,0.7);border:1.5px solid rgba(255,255,255,0.25);margin-top:4px; }
+
+/* Video title — bottom overlay */
+.vpm-title{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  padding:20px 20px 16px;
+  background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,transparent 100%);
+  color:#fff;
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.1rem;font-weight:600;
+  pointer-events:none;
+  z-index:2;
+  transition:opacity 0.3s ease;
+}
+.vpm-title.gone{ opacity:0; }
+
+/* ── CHOICE SHEET (bottom sheet) ── */
+.vcd-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:8000;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.18s ease}
+.vcd-box{background:#fff;border-radius:22px 22px 0 0;padding:1.6rem 1.6rem 2.4rem;width:100%;max-width:480px;animation:fadeUp 0.25s ease;position:relative}
+.vcd-handle{width:40px;height:4px;border-radius:4px;background:rgba(0,0,0,0.12);margin:0 auto 1.2rem}
+.vcd-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:var(--pk4);border:none;cursor:pointer;color:var(--pk);font-size:13px;display:flex;align-items:center;justify-content:center}
+.vcd-thumb-wrap{width:100%;height:110px;border-radius:14px;background:linear-gradient(135deg,#2d0818,#1a0a12,#3a1525);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;margin-bottom:1rem}
+.vcd-play-circle{width:48px;height:48px;border-radius:50%;background:rgba(232,24,109,0.9);display:flex;align-items:center;justify-content:center}
+.vcd-play-tri{width:0;height:0;border-top:10px solid transparent;border-bottom:10px solid transparent;border-left:17px solid #fff;margin-left:4px}
+.vcd-label{font-size:0.68rem;color:rgba(255,255,255,0.55);font-weight:600;letter-spacing:0.8px;text-transform:uppercase}
+.vcd-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:var(--txt);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vcd-subtitle{font-size:0.78rem;color:var(--txt3);margin-bottom:1rem}
+.vcd-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vcd-btn{padding:14px 8px;border-radius:14px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:72px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.vcd-btn-icon{font-size:1.4rem}
+.vcd-btn.preview{background:var(--pk4);border:1.5px solid var(--pk3);color:var(--pk2)}
+.vcd-btn.fullscreen{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff}
 
 /* ── GENERAL MODAL ── */
 .overlay{position:fixed;inset:0;background:rgba(10,0,18,0.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.2s ease}
@@ -388,7 +447,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 }
 `;
 
-// ─── SVG ICONS ────────────────────────────────────────────────────────────────
 const WaIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
@@ -418,14 +476,12 @@ function useToast() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  VIDEO CHOICE DIALOG
+//  VIDEO CHOICE BOTTOM SHEET
 // ═══════════════════════════════════════════════════════════════════════════════
-function VideoChoiceDialog({ title, onClose, onPreview, onFullPreview }) {
+function VideoChoiceDialog({ title, onClose, onPreview, onOpenInBrowser }) {
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+    return () => { document.body.style.overflow = ""; };
   }, []);
 
   return (
@@ -438,13 +494,15 @@ function VideoChoiceDialog({ title, onClose, onPreview, onFullPreview }) {
           <div className="vcd-label">Video Invitation</div>
         </div>
         <div className="vcd-title">{title}</div>
-        <div className="vcd-subtitle">Choose how to watch this invitation</div>
+        <div className="vcd-subtitle">How would you like to watch?</div>
         <div className="vcd-btns">
           <button className="vcd-btn preview" onClick={onPreview}>
-            <span className="vcd-btn-icon">📱</span>Preview
+            <span className="vcd-btn-icon">▶️</span>
+            Play Here
           </button>
-          <button className="vcd-btn fullscreen" onClick={onFullPreview}>
-            <span className="vcd-btn-icon">⛶</span>Full Screen
+          <button className="vcd-btn fullscreen" onClick={onOpenInBrowser}>
+            <span className="vcd-btn-icon">🌐</span>
+            Open in Browser
           </button>
         </div>
       </div>
@@ -453,155 +511,128 @@ function VideoChoiceDialog({ title, onClose, onPreview, onFullPreview }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  VIDEO PREVIEW MODAL — all mobile video sticking fixes applied here
+//  VIDEO PREVIEW MODAL — complete rewrite
+//
+//  ROOT CAUSE OF BLACK SPLIT SCREEN:
+//  The previous version used display:flex on .vpm-overlay, which split the
+//  viewport into two halves (flexbox default stretch behavior).
+//  The video element (block) + the loading div each took up half the screen.
+//
+//  FIX APPLIED:
+//  - .vpm-overlay is position:fixed with top/left/right/bottom:0 (no flex)
+//  - .vpm-video is position:absolute filling the entire overlay
+//  - Loading spinner is position:absolute centered with transform
+//  - preload="metadata" (not "none") — "none" on Android sometimes never
+//    fires canplay/loadeddata events at all, keeping it stuck forever
+//  - src set directly on the element — no dynamic assignment
+//  - controls are always visible so user can play manually if needed
 // ═══════════════════════════════════════════════════════════════════════════════
-function VideoPreviewModal({ url, title, onClose, autoFullscreen = false }) {
-  const videoRef             = useRef(null);
-  const [status, setStatus]  = useState("loading"); // "loading" | "ready" | "error"
-  const hasTriedPlay         = useRef(false);
-  const fullscreenDone       = useRef(false);
+function VideoPreviewModal({ url, title, onClose }) {
+  const videoRef          = useRef(null);
+  const [status, setStatus] = useState("loading"); // loading | ready | error
+  const didMarkReady      = useRef(false);
 
   useEffect(() => {
+    document.body.style.overflow = "hidden";
     const onKey = (e) => { if (e.key === "Escape") handleClose(); };
     document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
-  // ─── FIX 1: Use preload="none" on mobile, "metadata" on desktop ──────────────
-  // preload="auto" on mobile tries to download the whole file before playing,
-  // which is the primary cause of the "stuck/frozen" behavior on slow connections.
-  // "none" means the browser only loads when .play() is called — much faster start.
-  const preloadValue = isMobile() ? "none" : "metadata";
-
-  // ─── FIX 2: Use onCanPlay, but gate play() behind readyState >= 3 ─────────────
-  // readyState 1 = metadata, 2 = current frame, 3 = can play a few frames,
-  // 4 = can play all the way through.
-  // On mobile, onCanPlay fires at readyState 2 which is too early — causes stutter.
-  // We wait for readyState >= 3 (HAVE_FUTURE_DATA) before attempting play.
-  const tryPlay = () => {
-    const vid = videoRef.current;
-    if (!vid || hasTriedPlay.current) return;
-    if (vid.readyState < 3) return; // Not enough buffered yet — wait for next event
-    hasTriedPlay.current = true;
+  // Mark ready — called from multiple events to cover all Android browsers
+  const markReady = useCallback(() => {
+    if (didMarkReady.current) return;
+    didMarkReady.current = true;
     setStatus("ready");
-
-    vid.play().then(() => {
-      // ─── FIX 3: Enter fullscreen AFTER play() promise resolves ───────────────
-      // iOS requires the video to be actively playing before webkitEnterFullscreen
-      // works. Calling it in onCanPlay (before play resolves) silently fails.
-      if (autoFullscreen && !fullscreenDone.current) {
-        fullscreenDone.current = true;
-        // Small delay to let iOS register the playing state
-        setTimeout(() => {
-          const v = videoRef.current;
-          if (!v) return;
-          if (v.webkitEnterFullscreen)        v.webkitEnterFullscreen();
-          else if (v.requestFullscreen)        v.requestFullscreen().catch(() => {});
-          else if (v.webkitRequestFullscreen)  v.webkitRequestFullscreen();
-        }, 120);
-      }
-    }).catch(() => {
-      // Autoplay blocked — video is still visible with native controls,
-      // user can tap the play button themselves
-    });
-  };
-
-  // ─── FIX 4: Listen to multiple events, not just onCanPlay ────────────────────
-  // On different Android browsers, the reliable event varies:
-  // - Chrome Android: onCanPlay fires reliably
-  // - Samsung Internet: onLoadedData is more reliable
-  // - WeChat/WebView: onProgress + checking readyState is most reliable
-  // By checking readyState in all three handlers we cover all cases.
-  const handleCanPlay       = tryPlay;
-  const handleLoadedData    = tryPlay;
-  const handleProgress      = tryPlay;
-
-  const handleError = () => {
-    setStatus("error");
-  };
+    // Attempt autoplay — works because we're inside a user-gesture chain (tap opened the modal)
+    const vid = videoRef.current;
+    if (vid) {
+      vid.play().catch(() => {
+        // Blocked — user will see native controls and can tap play themselves
+      });
+    }
+  }, []);
 
   const handleClose = () => {
     const vid = videoRef.current;
     if (vid) {
       vid.pause();
-      // ─── FIX 5: Release media resource on close ───────────────────────────
-      // Without this, Android keeps the media pipeline open and you can hear
-      // audio after the modal closes. Setting src="" forces full release.
-      vid.src = "";
-      vid.load(); // resets the media element completely
+      vid.src = "";  // Fully releases the media pipeline (stops ghost audio on Android)
+      vid.load();
     }
     onClose();
   };
 
   const handleRetry = () => {
+    didMarkReady.current = false;
     setStatus("loading");
-    hasTriedPlay.current = false;
-    fullscreenDone.current = false;
     const vid = videoRef.current;
     if (vid) {
-      vid.load(); // re-fetches from network
+      vid.load();
     }
   };
 
   return (
-    <div className="vpm-overlay" onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}>
-      <div className="vpm-box">
-        <button className="vpm-close" onClick={handleClose}>✕</button>
+    <div className="vpm-overlay">
+      {/* Close button — always accessible */}
+      <button className="vpm-close" onClick={handleClose} aria-label="Close video">✕</button>
 
-        {/* Loading state */}
-        <div className={`vpm-loading${status !== "loading" ? " hidden" : ""}`}>
+      {/* THE VIDEO — position:absolute fills the entire overlay */}
+      {/*
+        preload="metadata":
+          - "none" causes Android WebView to never fire canplay/loadeddata
+          - "auto" causes buffering the whole file before playing (stuck)
+          - "metadata" is the correct balance: loads just enough to start quickly
+
+        playsInline:
+          - Without this, iOS opens its own fullscreen player instead of
+            showing our modal — that's what caused the split screen on iOS
+
+        NO autoplay attribute:
+          - We call .play() manually in markReady() after user gesture chain
+      */}
+      <video
+        ref={videoRef}
+        className={`vpm-video${status === "ready" ? " ready" : ""}`}
+        src={url}
+        controls
+        playsInline
+        preload="metadata"
+        onCanPlay={markReady}
+        onLoadedData={markReady}
+        onPlaying={markReady}
+        onError={() => setStatus("error")}
+        x5-playsinline="true"
+        webkit-playsinline="true"
+      />
+
+      {/* Loading state */}
+      {status === "loading" && (
+        <div className="vpm-loading">
           <div className="vpm-spinner" />
-          <div className="vpm-load-text">
-            {isMobile() ? "Loading video…\nThis may take a moment on mobile" : "Loading video…"}
-          </div>
+          <div className="vpm-load-text">Loading video…</div>
         </div>
+      )}
 
-        {/* Error state */}
-        {status === "error" && (
-          <div className="vpm-loading">
-            <div style={{ fontSize: "2rem" }}>⚠️</div>
-            <div className="vpm-load-text">Couldn't load this video.</div>
-            <button className="vpm-retry" onClick={handleRetry}>Try Again</button>
-            <button className="vpm-retry" style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.3)", marginTop: 4 }}
-              onClick={() => window.open(url, "_blank", "noopener,noreferrer")}>
-              Open in Browser
-            </button>
-          </div>
-        )}
-
-        {/*
-          THE VIDEO ELEMENT — mobile fixes:
-          - preload="none" on mobile: don't buffer the whole file before play
-          - playsInline: CRITICAL — without this iOS auto-fullscreens the video
-            in an inline element, causing the "stuck" effect
-          - controls: always visible so user can play manually if autoplay fails
-          - NO autoplay attribute — we call .play() in tryPlay() instead
-            (autoplay attr requires muted on mobile and causes unpredictable behavior)
-          - x5-playsinline + webkit-playsinline: WeChat/old Android compatibility
-        */}
-        <video
-          ref={videoRef}
-          className={`vpm-video${status === "ready" ? " ready" : ""}`}
-          src={url}
-          controls
-          playsInline
-          preload={preloadValue}
-          onCanPlay={handleCanPlay}
-          onLoadedData={handleLoadedData}
-          onProgress={handleProgress}
-          onError={handleError}
-          x5-playsinline="true"
-          webkit-playsinline="true"
-        />
-
-        {/* Animated buffering bar shown while loading */}
-        <div className={`vpm-buffer-bar${status !== "loading" ? " hidden" : ""}`}>
-          <div className="vpm-buffer-fill" />
+      {/* Error state */}
+      {status === "error" && (
+        <div className="vpm-error">
+          <div style={{ fontSize: "2.5rem" }}>⚠️</div>
+          <div className="vpm-err-text">Couldn't load this video</div>
+          <button className="vpm-btn primary" onClick={handleRetry}>Try Again</button>
+          <button className="vpm-btn ghost" onClick={() => window.open(url, "_blank", "noopener,noreferrer")}>
+            Open in Browser
+          </button>
         </div>
+      )}
 
-        {title && status === "ready" && <div className="vpm-title">▶ {title}</div>}
-      </div>
+      {/* Title bar — only shown when playing */}
+      {title && (
+        <div className={`vpm-title${status !== "ready" ? " gone" : ""}`}>▶ {title}</div>
+      )}
     </div>
   );
 }
@@ -610,43 +641,10 @@ function VideoPreviewModal({ url, title, onClose, autoFullscreen = false }) {
 //  TEMPLATE CARD
 // ═══════════════════════════════════════════════════════════════════════════════
 function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }) {
-  const [videoMode, setVideoMode] = useState(null);
+  const [videoMode, setVideoMode] = useState(null); // null | "choice" | "preview"
   const mobile = isMobile();
   const waMsg  = encodeURIComponent(`Hi, I'm interested in this invitation template: ${tpl.title}`);
   const isVid  = isVideoUrl(tpl.image);
-
-  const handleDesktopFullPreview = () => {
-    setVideoMode(null);
-    const vid         = document.createElement("video");
-    vid.src           = tpl.image;
-    vid.controls      = true;
-    vid.autoplay      = true;
-    vid.playsInline   = true;
-    vid.style.cssText = "position:fixed;inset:0;width:100%;height:100%;background:#000;z-index:9999;outline:none;";
-    document.body.appendChild(vid);
-    const cleanup = () => {
-      vid.pause(); vid.src = ""; vid.load();
-      if (document.body.contains(vid)) document.body.removeChild(vid);
-      document.removeEventListener("fullscreenchange", onFs);
-    };
-    const onFs = () => { if (!document.fullscreenElement) cleanup(); };
-    document.addEventListener("fullscreenchange", onFs);
-    const req = vid.requestFullscreen || vid.webkitRequestFullscreen || vid.mozRequestFullScreen;
-    if (req) {
-      req.call(vid).catch(() => { cleanup(); window.open(tpl.image, "_blank", "noopener,noreferrer"); });
-    } else {
-      cleanup();
-      window.open(tpl.image, "_blank", "noopener,noreferrer");
-    }
-  };
-
-  const handleFullPreview = () => {
-    if (mobile) {
-      setVideoMode("fullscreen");
-    } else {
-      handleDesktopFullPreview();
-    }
-  };
 
   return (
     <>
@@ -658,59 +656,31 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
         >
           {isVid ? (
             <>
+              {/* Mobile: static gradient placeholder — no <video> in card (avoids network congestion) */}
+              {/* Desktop: muted video thumbnail */}
               {mobile ? (
-                // Mobile: gradient placeholder — no <video> in the card
                 <div style={{
                   width: "100%", height: "100%",
                   background: "linear-gradient(135deg,#2a0610 0%,#1a0a12 45%,#38101e 100%)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  flexDirection: "column", gap: "12px",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "12px",
                 }}>
-                  <div style={{
-                    width: 64, height: 64, borderRadius: "50%",
-                    background: "rgba(232,24,109,0.88)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    boxShadow: "0 6px 24px rgba(232,24,109,0.5)",
-                  }}>
-                    <div style={{
-                      width: 0, height: 0,
-                      borderTop: "13px solid transparent",
-                      borderBottom: "13px solid transparent",
-                      borderLeft: "22px solid #fff",
-                      marginLeft: "5px",
-                    }} />
+                  <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(232,24,109,0.88)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 24px rgba(232,24,109,0.5)" }}>
+                    <div style={{ width: 0, height: 0, borderTop: "13px solid transparent", borderBottom: "13px solid transparent", borderLeft: "22px solid #fff", marginLeft: "5px" }} />
                   </div>
-                  <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.65)", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase" }}>
-                    Tap to Play
-                  </div>
+                  <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.65)", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase" }}>Tap to Play</div>
                 </div>
               ) : (
-                // Desktop: muted video thumbnail
-                <video
-                  className="tcard-vid-thumb"
-                  src={tpl.image}
-                  muted
-                  preload="metadata"
-                  playsInline
-                  onLoadedMetadata={(e) => { try { e.target.currentTime = 0.1; } catch {} }}
-                />
+                <video className="tcard-vid-thumb" src={tpl.image} muted preload="metadata" playsInline
+                  onLoadedMetadata={(e) => { try { e.target.currentTime = 0.1; } catch {} }} />
               )}
               <div className="tcard-ov" />
-              {!mobile && (
-                <div className="play-overlay">
-                  <div className="play-btn"><div className="play-arrow" /></div>
-                </div>
-              )}
+              {!mobile && <div className="play-overlay"><div className="play-btn"><div className="play-arrow" /></div></div>}
               <span className="vid-badge">▶ VIDEO</span>
             </>
           ) : (
             <>
-              <img
-                className="tcard-img"
-                src={tpl.image}
-                alt={tpl.title}
-                onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=420&fit=crop"; }}
-              />
+              <img className="tcard-img" src={tpl.image} alt={tpl.title}
+                onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=420&fit=crop"; }} />
               <div className="tcard-ov" />
             </>
           )}
@@ -751,16 +721,15 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
           title={tpl.title}
           onClose={() => setVideoMode(null)}
           onPreview={() => setVideoMode("preview")}
-          onFullPreview={handleFullPreview}
+          onOpenInBrowser={() => { setVideoMode(null); window.open(tpl.image, "_blank", "noopener,noreferrer"); }}
         />
       )}
 
-      {(videoMode === "preview" || videoMode === "fullscreen") && (
+      {videoMode === "preview" && (
         <VideoPreviewModal
           url={tpl.image}
           title={tpl.title}
           onClose={() => setVideoMode(null)}
-          autoFullscreen={videoMode === "fullscreen"}
         />
       )}
     </>
