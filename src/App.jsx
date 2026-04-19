@@ -201,25 +201,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .sec-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;color:var(--txt)}
 .sec-line{flex:1;height:1px;background:linear-gradient(to right,var(--pk3),transparent)}
 
-/* ── GRID FIX: CSS grid replaces flexbox for even, responsive card layout ── */
-.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem}
+/* ── GRID ── */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.5rem}
 
-/* ── CARD FIX: full-width within grid cell, no flex sizing ── */
+/* ── CARD ── */
 .tcard{width:100%;background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1);border:1px solid rgba(232,24,109,0.07);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1),box-shadow 0.32s cubic-bezier(0.4,0,0.2,1);animation:fadeUp 0.5s ease both;position:relative}
 .tcard:hover{transform:translateY(-8px) scale(1.012);box-shadow:var(--sh3)}
-
-/* ── IMAGE WRAP FIX: aspect-ratio instead of fixed height ── */
-.tcard-img-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--pk4)}
-
+/* Fixed height on desktop, shorter on mobile so 2 cards fit nicely per row */
+.tcard-img-wrap{position:relative;height:210px;overflow:hidden;background:var(--pk4)}
 .tcard-img{width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
 .tcard:hover .tcard-img{transform:scale(1.09)}
-.tcard-vid-thumb{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
-.tcard:hover .tcard-vid-thumb{transform:scale(1.09)}
+.tcard-vid-thumb{width:100%;height:100%;object-fit:cover;display:block}
 .tcard-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(26,10,18,0.55) 0%,transparent 55%);opacity:0;transition:opacity 0.3s;pointer-events:none}
 .tcard:hover .tcard-ov{opacity:1}
-.play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.play-btn{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.92);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(0,0,0,0.28)}
-.play-arrow{width:0;height:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:20px solid var(--pk);margin-left:4px}
 .vid-badge{position:absolute;bottom:10px;left:12px;background:rgba(0,0,0,0.62);color:#fff;font-size:0.64rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:0.6px}
 .cat-badge{position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.92);color:var(--pk2);font-size:0.7rem;font-weight:700;padding:4px 12px;border-radius:var(--r3);text-transform:uppercase;letter-spacing:0.6px;border:1px solid rgba(232,24,109,0.12)}
 .tcard-body{padding:1.2rem 1.3rem 1.3rem}
@@ -237,100 +231,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .adm-ctrl{position:absolute;top:10px;right:10px;display:flex;gap:5px;z-index:5}
 .acb{background:rgba(255,255,255,0.9);border:none;border-radius:8px;padding:5px 7px;cursor:pointer;font-size:13px;transition:var(--tr)}
 .acb:hover{transform:scale(1.12)}
-.vpm-overlay{
-  position:fixed;
-  top:0;left:0;right:0;bottom:0;
-  background:#000;
-  z-index:9000;
-  animation:fadeIn 0.15s ease;
-  padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px);
-}
-.vpm-video{
-  position:absolute;
-  top:0;left:0;
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  background:#000;
-  display:block;
-  outline:none;
-  opacity:0;
-  transition:opacity 0.3s ease;
-}
-.vpm-video.ready{ opacity:1; }
-.vpm-loading{
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:14px;
-  pointer-events:none;
-  transition:opacity 0.25s ease;
-  z-index:2;
-}
-.vpm-loading.gone{ opacity:0; pointer-events:none; }
-.vpm-spinner{
-  width:48px;height:48px;
-  border:3px solid rgba(255,255,255,0.15);
-  border-top-color:var(--pk);
-  border-radius:50%;
-  animation:spin 0.85s linear infinite;
-}
-.vpm-load-text{
-  font-size:0.85rem;
-  color:rgba(255,255,255,0.55);
-  font-family:'DM Sans',sans-serif;
-  text-align:center;
-  line-height:1.5;
-  max-width:220px;
-}
-.vpm-close{
-  position:absolute;
-  top:16px;right:16px;
-  z-index:10;
-  width:44px;height:44px;
-  border-radius:50%;
-  background:rgba(0,0,0,0.7);
-  border:1.5px solid rgba(255,255,255,0.3);
-  color:#fff;
-  font-size:20px;
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
-}
-.vpm-close:active{ background:var(--pk); }
-.vpm-error{
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  display:flex;flex-direction:column;align-items:center;gap:14px;
-  z-index:3;text-align:center;
-}
-.vpm-err-text{ font-size:0.85rem;color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif; }
-.vpm-btn{
-  padding:11px 26px;border-radius:var(--r3);border:none;
-  font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:700;
-  cursor:pointer;touch-action:manipulation;
-}
-.vpm-btn.primary{ background:var(--pk);color:#fff; }
-.vpm-btn.ghost{ background:transparent;color:rgba(255,255,255,0.7);border:1.5px solid rgba(255,255,255,0.25);margin-top:4px; }
-.vpm-title{
-  position:absolute;
-  bottom:0;left:0;right:0;
-  padding:20px 20px 16px;
-  background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,transparent 100%);
-  color:#fff;
-  font-family:'Cormorant Garamond',serif;
-  font-size:1.1rem;font-weight:600;
-  pointer-events:none;
-  z-index:2;
-  transition:opacity 0.3s ease;
-}
-.vpm-title.gone{ opacity:0; }
+
+/* ── VIDEO PLAYER (full screen) ── */
+.vpm-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:9000;animation:fadeIn 0.15s ease;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.vpm-video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;background:#000;display:block;outline:none;opacity:0;transition:opacity 0.3s ease}
+.vpm-video.ready{opacity:1}
+.vpm-loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:14px;pointer-events:none;transition:opacity 0.25s ease;z-index:2}
+.vpm-loading.gone{opacity:0;pointer-events:none}
+.vpm-spinner{width:48px;height:48px;border:3px solid rgba(255,255,255,0.15);border-top-color:var(--pk);border-radius:50%;animation:spin 0.85s linear infinite}
+.vpm-load-text{font-size:0.85rem;color:rgba(255,255,255,0.55);font-family:'DM Sans',sans-serif;text-align:center;line-height:1.5;max-width:220px}
+.vpm-close{position:absolute;top:16px;right:16px;z-index:10;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,0.7);border:1.5px solid rgba(255,255,255,0.3);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.vpm-close:active{background:var(--pk)}
+.vpm-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:14px;z-index:3;text-align:center}
+.vpm-err-text{font-size:0.85rem;color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif}
+.vpm-btn{padding:11px 26px;border-radius:var(--r3);border:none;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;touch-action:manipulation}
+.vpm-btn.primary{background:var(--pk);color:#fff}
+.vpm-btn.ghost{background:transparent;color:rgba(255,255,255,0.7);border:1.5px solid rgba(255,255,255,0.25);margin-top:4px}
+.vpm-title{position:absolute;bottom:0;left:0;right:0;padding:20px 20px 16px;background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,transparent 100%);color:#fff;font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;pointer-events:none;z-index:2;transition:opacity 0.3s ease}
+.vpm-title.gone{opacity:0}
+
+/* ── CHOICE SHEET (desktop only) ── */
 .vcd-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:8000;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.18s ease}
 .vcd-box{background:#fff;border-radius:22px 22px 0 0;padding:1.6rem 1.6rem 2.4rem;width:100%;max-width:480px;animation:fadeUp 0.25s ease;position:relative}
 .vcd-handle{width:40px;height:4px;border-radius:4px;background:rgba(0,0,0,0.12);margin:0 auto 1.2rem}
@@ -346,6 +266,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .vcd-btn-icon{font-size:1.4rem}
 .vcd-btn.preview{background:var(--pk4);border:1.5px solid var(--pk3);color:var(--pk2)}
 .vcd-btn.fullscreen{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff}
+
+/* ── MODALS ── */
 .overlay{position:fixed;inset:0;background:rgba(10,0,18,0.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.2s ease}
 .modal{background:#fff;border-radius:20px;padding:2.2rem;width:100%;max-width:440px;box-shadow:0 30px 80px rgba(0,0,0,0.28);animation:fadeUp 0.3s ease;position:relative;max-height:90vh;overflow-y:auto}
 .modal.wide{max-width:580px}
@@ -416,9 +338,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .loading-overlay{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:1rem}
 .spinner{width:38px;height:38px;border:3px solid var(--pk3);border-top-color:var(--pk);border-radius:50%;animation:spin 0.7s linear infinite}
 
-/* ── RESPONSIVE BREAKPOINTS ── */
-@media(max-width:768px){.tgrid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}}
-@media(max-width:480px){.tgrid{grid-template-columns:1fr}}
+/* ── RESPONSIVE ── */
+/* Mobile: 2-column card grid, shorter card image */
+@media(max-width:600px){
+  .tgrid{grid-template-columns:1fr 1fr;gap:0.75rem}
+  .tcard-img-wrap{height:150px}
+  .tcard-body{padding:0.8rem 0.85rem 0.9rem}
+  .tcard-title{font-size:0.9rem}
+  .tcard-price{font-size:1rem;margin-bottom:0.6rem}
+  .ctab{font-size:0.6rem;padding:7px 2px}
+}
+/* Very small phones: single column */
+@media(max-width:340px){
+  .tgrid{grid-template-columns:1fr}
+  .tcard-img-wrap{height:190px}
+}
 @media(max-width:680px){
   .hdr-in{padding:0 1rem}.hero{padding:3.5rem 1rem 3rem}
   .hero-stats{gap:1.5rem}.sep{display:none}
@@ -427,6 +361,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 }
 `;
 
+// ─── SVG ICONS ────────────────────────────────────────────────────────────────
 const WaIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
@@ -456,14 +391,13 @@ function useToast() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  VIDEO CHOICE BOTTOM SHEET
+//  VIDEO CHOICE SHEET  — desktop only, gives user "Play Here" vs "Open in Browser"
 // ═══════════════════════════════════════════════════════════════════════════════
 function VideoChoiceDialog({ title, onClose, onPreview, onOpenInBrowser }) {
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, []);
-
   return (
     <div className="vcd-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="vcd-box">
@@ -477,12 +411,10 @@ function VideoChoiceDialog({ title, onClose, onPreview, onOpenInBrowser }) {
         <div className="vcd-subtitle">How would you like to watch?</div>
         <div className="vcd-btns">
           <button className="vcd-btn preview" onClick={onPreview}>
-            <span className="vcd-btn-icon">▶️</span>
-            Play Here
+            <span className="vcd-btn-icon">▶️</span>Play Here
           </button>
           <button className="vcd-btn fullscreen" onClick={onOpenInBrowser}>
-            <span className="vcd-btn-icon">🌐</span>
-            Open in Browser
+            <span className="vcd-btn-icon">🌐</span>Open in Browser
           </button>
         </div>
       </div>
@@ -491,7 +423,7 @@ function VideoChoiceDialog({ title, onClose, onPreview, onOpenInBrowser }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  VIDEO PREVIEW MODAL
+//  VIDEO PREVIEW MODAL  — full screen player, both desktop and mobile
 // ═══════════════════════════════════════════════════════════════════════════════
 function VideoPreviewModal({ url, title, onClose }) {
   const videoRef            = useRef(null);
@@ -502,60 +434,32 @@ function VideoPreviewModal({ url, title, onClose }) {
     document.body.style.overflow = "hidden";
     const onKey = (e) => { if (e.key === "Escape") handleClose(); };
     document.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", onKey);
-    };
+    return () => { document.body.style.overflow = ""; document.removeEventListener("keydown", onKey); };
   }, []);
 
   const markReady = useCallback(() => {
     if (didMarkReady.current) return;
     didMarkReady.current = true;
     setStatus("ready");
-    const vid = videoRef.current;
-    if (vid) {
-      vid.muted = true;
-      vid.play().catch(() => {
-        console.log("Autoplay blocked");
-      });
-    }
+    videoRef.current?.play().catch(() => {});
   }, []);
 
   const handleClose = () => {
     const vid = videoRef.current;
-    if (vid) {
-      vid.pause();
-      vid.src = "";
-      vid.load();
-    }
+    if (vid) { vid.pause(); vid.src = ""; vid.load(); }
     onClose();
-  };
-
-  const handleRetry = () => {
-    didMarkReady.current = false;
-    setStatus("loading");
-    const vid = videoRef.current;
-    if (vid) { vid.load(); }
   };
 
   return (
     <div className="vpm-overlay">
-      <button className="vpm-close" onClick={handleClose} aria-label="Close video">✕</button>
+      <button className="vpm-close" onClick={handleClose}>✕</button>
       <video
         ref={videoRef}
         className={`vpm-video${status === "ready" ? " ready" : ""}`}
-        src={url}
-        controls
-        playsInline
-        muted
-        autoPlay
-        preload="metadata"
-        onCanPlay={markReady}
-        onLoadedData={markReady}
-        onPlaying={markReady}
+        src={url} controls playsInline autoPlay preload="metadata"
+        onCanPlay={markReady} onLoadedData={markReady} onPlaying={markReady}
         onError={() => setStatus("error")}
-        x5-playsinline="true"
-        webkit-playsinline="true"
+        x5-playsinline="true" webkit-playsinline="true"
       />
       {status === "loading" && (
         <div className="vpm-loading">
@@ -567,55 +471,63 @@ function VideoPreviewModal({ url, title, onClose }) {
         <div className="vpm-error">
           <div style={{ fontSize: "2.5rem" }}>⚠️</div>
           <div className="vpm-err-text">Couldn't load this video</div>
-          <button className="vpm-btn primary" onClick={handleRetry}>Try Again</button>
-          <button className="vpm-btn ghost" onClick={() => window.open(url, "_blank", "noopener,noreferrer")}>
-            Open in Browser
-          </button>
+          <button className="vpm-btn primary" onClick={() => { didMarkReady.current = false; setStatus("loading"); videoRef.current?.load(); }}>Try Again</button>
+          <button className="vpm-btn ghost" onClick={() => window.open(url, "_blank", "noopener,noreferrer")}>Open in Browser</button>
         </div>
       )}
-      {title && (
-        <div className={`vpm-title${status !== "ready" ? " gone" : ""}`}>▶ {title}</div>
-      )}
+      {title && <div className={`vpm-title${status !== "ready" ? " gone" : ""}`}>▶ {title}</div>}
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  TEMPLATE CARD
+//  ▶ MOBILE  → one tap opens VideoPreviewModal directly (no extra step)
+//  ▶ DESKTOP → tap opens VideoChoiceDialog first (Play Here / Open in Browser)
 // ═══════════════════════════════════════════════════════════════════════════════
 function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }) {
-  const [videoMode, setVideoMode] = useState(null);
+  const [videoMode, setVideoMode] = useState(null); // null | "choice" | "preview"
   const mobile = isMobile();
   const waMsg  = encodeURIComponent(`Hi, I'm interested in this invitation template: ${tpl.title}`);
   const isVid  = isVideoUrl(tpl.image);
 
+  const handleCardClick = () => {
+    if (!isVid) return;
+    // KEY FIX: mobile skips choice dialog → goes straight to full-screen player
+    setVideoMode(mobile ? "preview" : "choice");
+  };
+
   return (
     <>
       <div className="tcard" style={{ animationDelay: `${delay}ms`, opacity: !tpl.is_active && isAdmin ? 0.58 : 1 }}>
-        <div
-          className="tcard-img-wrap"
-          onClick={() => isVid && setVideoMode("choice")}
-          style={{ cursor: isVid ? "pointer" : "default" }}
-        >
+        <div className="tcard-img-wrap" onClick={handleCardClick} style={{ cursor: isVid ? "pointer" : "default" }}>
+
           {isVid ? (
             <>
-              {mobile ? (
-                <div style={{
-                  width: "100%", height: "100%",
-                  background: "linear-gradient(135deg,#2a0610 0%,#1a0a12 45%,#38101e 100%)",
-                  display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "12px",
-                }}>
-                  <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(232,24,109,0.88)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 24px rgba(232,24,109,0.5)" }}>
-                    <div style={{ width: 0, height: 0, borderTop: "13px solid transparent", borderBottom: "13px solid transparent", borderLeft: "22px solid #fff", marginLeft: "5px" }} />
-                  </div>
-                  <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.65)", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase" }}>Tap to Play</div>
-                </div>
-              ) : (
+              {/* Desktop: show actual video first-frame as thumbnail */}
+              {!mobile && (
                 <video className="tcard-vid-thumb" src={tpl.image} muted preload="metadata" playsInline
                   onLoadedMetadata={(e) => { try { e.target.currentTime = 0.1; } catch {} }} />
               )}
-              <div className="tcard-ov" />
-              {!mobile && <div className="play-overlay"><div className="play-btn"><div className="play-arrow" /></div></div>}
+
+              {/* Play button overlay — same design on both mobile & desktop */}
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(135deg,rgba(42,6,16,0.82) 0%,rgba(26,10,18,0.70) 45%,rgba(56,16,30,0.82) 100%)",
+                display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 10,
+              }}>
+                <div style={{
+                  width: 58, height: 58, borderRadius: "50%",
+                  background: "rgba(232,24,109,0.92)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 6px 24px rgba(232,24,109,0.55)",
+                }}>
+                  <div style={{ width: 0, height: 0, borderTop: "12px solid transparent", borderBottom: "12px solid transparent", borderLeft: "20px solid #fff", marginLeft: 5 }} />
+                </div>
+                <div style={{ fontSize: "0.67rem", color: "rgba(255,255,255,0.85)", fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase" }}>
+                  {mobile ? "Tap to Play" : "Click to Play"}
+                </div>
+              </div>
               <span className="vid-badge">▶ VIDEO</span>
             </>
           ) : (
@@ -625,9 +537,11 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
               <div className="tcard-ov" />
             </>
           )}
+
           <span className="cat-badge">
             {tpl.category === "wedding" ? "💍 Wedding" : tpl.category === "housewarming" ? "🏡 Housewarming" : "🎂 Birthday"}
           </span>
+
           {isAdmin && (
             <div className="adm-ctrl">
               <button className="acb" title={tpl.is_active ? "Deactivate" : "Activate"}
@@ -657,6 +571,7 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
         </div>
       </div>
 
+      {/* Desktop: choice sheet */}
       {videoMode === "choice" && (
         <VideoChoiceDialog
           title={tpl.title}
@@ -666,12 +581,9 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
         />
       )}
 
+      {/* Both: full-screen player */}
       {videoMode === "preview" && (
-        <VideoPreviewModal
-          url={tpl.image}
-          title={tpl.title}
-          onClose={() => setVideoMode(null)}
-        />
+        <VideoPreviewModal url={tpl.image} title={tpl.title} onClose={() => setVideoMode(null)} />
       )}
     </>
   );
@@ -764,9 +676,7 @@ function TplForm({ tpl, onClose, onSave }) {
     const file = e.target.files[0];
     if (!file) return;
     if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
-    setFile(file);
-    setPreview(URL.createObjectURL(file));
-    setErr("");
+    setFile(file); setPreview(URL.createObjectURL(file)); setErr("");
   };
 
   const save = async () => {
@@ -822,11 +732,9 @@ function TplForm({ tpl, onClose, onSave }) {
           </div>
           {preview && (
             <div style={{ gridColumn: "1/-1", borderRadius: 10, overflow: "hidden", border: "1.5px solid var(--pk3)", maxHeight: 180 }}>
-              {isVidPreview ? (
-                <video src={preview} controls style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
-              ) : (
-                <img src={preview} alt="Preview" style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
-              )}
+              {isVidPreview
+                ? <video src={preview} controls style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
+                : <img src={preview} alt="Preview" style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />}
             </div>
           )}
           <div className="fg" style={{ gridColumn: "1/-1", display: "flex", alignItems: "center", gap: 10 }}>
@@ -964,10 +872,12 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
   const [maxPrice, setMaxPrice] = useState(2500);
   const [editTpl, setEditTpl]   = useState(null);
   const highPrice = templates.length ? Math.max(...templates.map((t) => t.price), 2500) : 2500;
+
   const shown = templates
     .filter((t) => isAdmin || t.is_active)
     .filter((t) => cat === "all" || t.category === cat)
     .filter((t) => t.price <= maxPrice);
+
   const cats = [
     { k: "all", l: "✨ All" }, { k: "wedding", l: "💍 Wedding" },
     { k: "housewarming", l: "🏡 Housewarming" }, { k: "birthday", l: "🎂 Birthday" },
@@ -983,7 +893,9 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
           {!sess ? (
             <button className="btn-hero primary" onClick={onLoginClick}>Browse Designs →</button>
           ) : (
-            <button className="btn-hero primary" onClick={() => document.getElementById("tgrid")?.scrollIntoView({ behavior: "smooth" })}>Explore Designs →</button>
+            <button className="btn-hero primary" onClick={() => document.getElementById("tgrid")?.scrollIntoView({ behavior: "smooth" })}>
+              Explore Designs →
+            </button>
           )}
           <a className="btn-hero secondary" href={`https://wa.me/${WA}`} target="_blank" rel="noreferrer">WhatsApp Us</a>
         </div>
@@ -1175,4 +1087,3 @@ export default function App() {
     </>
   );
 }
-
