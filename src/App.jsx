@@ -200,10 +200,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .sec-hdr{display:flex;align-items:baseline;gap:12px;margin-bottom:2rem}
 .sec-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;color:var(--txt)}
 .sec-line{flex:1;height:1px;background:linear-gradient(to right,var(--pk3),transparent)}
-.tgrid{display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:center}
-.tcard{flex:1 1 260px;max-width:320px;min-width:0;background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1);border:1px solid rgba(232,24,109,0.07);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1),box-shadow 0.32s cubic-bezier(0.4,0,0.2,1);animation:fadeUp 0.5s ease both;position:relative}
+
+/* ── GRID FIX: CSS grid replaces flexbox for even, responsive card layout ── */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem}
+
+/* ── CARD FIX: full-width within grid cell, no flex sizing ── */
+.tcard{width:100%;background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1);border:1px solid rgba(232,24,109,0.07);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1),box-shadow 0.32s cubic-bezier(0.4,0,0.2,1);animation:fadeUp 0.5s ease both;position:relative}
 .tcard:hover{transform:translateY(-8px) scale(1.012);box-shadow:var(--sh3)}
-.tcard-img-wrap{position:relative;height:210px;overflow:hidden;background:var(--pk4)}
+
+/* ── IMAGE WRAP FIX: aspect-ratio instead of fixed height ── */
+.tcard-img-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--pk4)}
+
 .tcard-img{width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
 .tcard:hover .tcard-img{transform:scale(1.09)}
 .tcard-vid-thumb{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
@@ -408,9 +415,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .flink:hover{color:var(--pk3)}
 .loading-overlay{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:1rem}
 .spinner{width:38px;height:38px;border:3px solid var(--pk3);border-top-color:var(--pk);border-radius:50%;animation:spin 0.7s linear infinite}
-@media(max-width:1200px){.tcard{flex:1 1 220px;max-width:280px}}
-@media(max-width:768px){.tcard{flex:1 1 calc(50% - 0.75rem);max-width:calc(50% - 0.75rem)}}
-@media(max-width:480px){.tcard{flex:1 1 100%;max-width:100%}}
+
+/* ── RESPONSIVE BREAKPOINTS ── */
+@media(max-width:768px){.tgrid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}}
+@media(max-width:480px){.tgrid{grid-template-columns:1fr}}
 @media(max-width:680px){
   .hdr-in{padding:0 1rem}.hero{padding:3.5rem 1rem 3rem}
   .hero-stats{gap:1.5rem}.sep{display:none}
@@ -484,14 +492,10 @@ function VideoChoiceDialog({ title, onClose, onPreview, onOpenInBrowser }) {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  VIDEO PREVIEW MODAL
-//  Changes vs previous version:
-//  1. Added `muted` and `autoPlay` attributes to the <video> element
-//  2. In markReady(), set vid.muted = true before calling vid.play()
-//     — muted is required by all mobile browsers to allow programmatic autoplay
 // ═══════════════════════════════════════════════════════════════════════════════
 function VideoPreviewModal({ url, title, onClose }) {
   const videoRef            = useRef(null);
-  const [status, setStatus] = useState("loading"); // loading | ready | error
+  const [status, setStatus] = useState("loading");
   const didMarkReady        = useRef(false);
 
   useEffect(() => {
@@ -504,19 +508,15 @@ function VideoPreviewModal({ url, title, onClose }) {
     };
   }, []);
 
-  // ── CHANGE 1: vid.muted = true is set before play() so mobile browsers
-  //             allow autoplay without requiring a user gesture on the video itself.
-  //             The modal open (tap) counts as the gesture; muted lets it proceed.
   const markReady = useCallback(() => {
     if (didMarkReady.current) return;
     didMarkReady.current = true;
     setStatus("ready");
     const vid = videoRef.current;
     if (vid) {
-      vid.muted = true; // ← required for autoplay on iOS / Android Chrome
+      vid.muted = true;
       vid.play().catch(() => {
         console.log("Autoplay blocked");
-        // Controls are always visible — user can tap play manually
       });
     }
   }, []);
@@ -525,7 +525,7 @@ function VideoPreviewModal({ url, title, onClose }) {
     const vid = videoRef.current;
     if (vid) {
       vid.pause();
-      vid.src = ""; // Fully releases media pipeline (stops ghost audio on Android)
+      vid.src = "";
       vid.load();
     }
     onClose();
@@ -540,32 +540,7 @@ function VideoPreviewModal({ url, title, onClose }) {
 
   return (
     <div className="vpm-overlay">
-      {/* Close button — always accessible */}
       <button className="vpm-close" onClick={handleClose} aria-label="Close video">✕</button>
-
-      {/*
-        CHANGE 2: Added `muted` and `autoPlay` attributes to the <video> element.
-
-        Why muted:
-          - Browsers block autoplay with sound by default on mobile.
-          - Setting muted (both as attribute + imperatively in markReady) is the
-            only cross-browser way to enable autoplay on iOS Safari and Android Chrome.
-
-        Why autoPlay:
-          - Signals intent to the browser immediately when the element mounts.
-          - Combined with muted, this triggers autoplay in most mobile browsers
-            even before the canplay/loadeddata events fire.
-          - We also call vid.play() in markReady() as a fallback for browsers
-            that ignore the attribute (e.g. some Android WebViews).
-
-        Preserved attributes (unchanged):
-          - controls: always visible so user can play manually if autoplay is blocked
-          - playsInline: prevents iOS from hijacking into fullscreen player
-          - preload="metadata": loads just enough to start quickly without buffering all
-          - onCanPlay, onLoadedData, onPlaying: cross-browser ready detection
-          - onError: error state handling
-          - x5-playsinline, webkit-playsinline: legacy Android/iOS compatibility
-      */}
       <video
         ref={videoRef}
         className={`vpm-video${status === "ready" ? " ready" : ""}`}
@@ -582,16 +557,12 @@ function VideoPreviewModal({ url, title, onClose }) {
         x5-playsinline="true"
         webkit-playsinline="true"
       />
-
-      {/* Loading state */}
       {status === "loading" && (
         <div className="vpm-loading">
           <div className="vpm-spinner" />
           <div className="vpm-load-text">Loading video…</div>
         </div>
       )}
-
-      {/* Error state */}
       {status === "error" && (
         <div className="vpm-error">
           <div style={{ fontSize: "2.5rem" }}>⚠️</div>
@@ -602,8 +573,6 @@ function VideoPreviewModal({ url, title, onClose }) {
           </button>
         </div>
       )}
-
-      {/* Title bar — only shown when playing */}
       {title && (
         <div className={`vpm-title${status !== "ready" ? " gone" : ""}`}>▶ {title}</div>
       )}
@@ -615,7 +584,7 @@ function VideoPreviewModal({ url, title, onClose }) {
 //  TEMPLATE CARD
 // ═══════════════════════════════════════════════════════════════════════════════
 function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }) {
-  const [videoMode, setVideoMode] = useState(null); // null | "choice" | "preview"
+  const [videoMode, setVideoMode] = useState(null);
   const mobile = isMobile();
   const waMsg  = encodeURIComponent(`Hi, I'm interested in this invitation template: ${tpl.title}`);
   const isVid  = isVideoUrl(tpl.image);
@@ -1206,3 +1175,4 @@ export default function App() {
     </>
   );
 }
+
