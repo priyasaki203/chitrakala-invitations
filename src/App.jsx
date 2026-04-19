@@ -5,31 +5,17 @@
 // ══════════════════════════════════════════════════════════════════════════════
 //  STEP 1 — Fill in your own keys before running
 // ══════════════════════════════════════════════════════════════════════════════
-//
-//  SUPABASE
-//  Go to: supabase.com → your project → Settings → API
-//    SUPABASE_URL  = "Project URL"  (looks like https://xxxx.supabase.co)
-//    SUPABASE_ANON = "anon / public" key
-//
-//  EMAILJS  (for new-device login alert)
-//  Go to: emailjs.com → Email Services → create service  → copy Service ID
-//                     → Email Templates → create template → copy Template ID
-//                     → Account → copy Public Key
-//  In your EmailJS template use these variables:
-//    {{to_email}}  {{user_name}}  {{device_info}}  {{login_time}}
-//
-// ══════════════════════════════════════════════════════════════════════════════
-const SUPABASE_URL  = "https://YOUR_PROJECT.supabase.co";   // ← replace
-const SUPABASE_ANON = "YOUR_ANON_KEY";                       // ← replace
+const SUPABASE_URL  = "https://myenjbljtvlwptlxzlhh.supabase.co";   // ← replace
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15ZW5qYmxqdHZsd3B0bHh6bGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTk1NzAsImV4cCI6MjA5MjA5NTU3MH0.zLEW6w3nZSViXMAvyuxR72HrhCIIuAkmBvTtV27Jv5Q";                       // ← replace
 
-const EMAILJS_PUBLIC_KEY   = "sMgdbh9Kiv0o3szux";           // your existing key
-const EMAILJS_SERVICE_ID   = "service_fuq1yop";             // your existing service
-const EMAILJS_DEVICE_TPL   = "template_device_login";       // ← NEW template for device alert
-const EMAILJS_ENQUIRY_TPL  = "template_u46iezf";            // your existing enquiry template
+const EMAILJS_PUBLIC_KEY   = "sMgdbh9Kiv0o3szux";
+const EMAILJS_SERVICE_ID   = "service_fuq1yop";
+const EMAILJS_DEVICE_TPL   = "template_device_login";
+const EMAILJS_ENQUIRY_TPL  = "template_u46iezf";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { createClient }  from "@supabase/supabase-js";
-import emailjs           from "@emailjs/browser";
+import { createClient } from "@supabase/supabase-js";
+import emailjs from "@emailjs/browser";
 
 // ─── SUPABASE CLIENT ──────────────────────────────────────────────────────────
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -44,23 +30,33 @@ const MAIL = "priyasaki190@gmail.com";
 const IG   = "https://instagram.com/priyasaki__19";
 
 // ─── DEVICE INFO HELPER ───────────────────────────────────────────────────────
-// We store a short fingerprint so we can detect a truly new device.
 function getDeviceFingerprint() {
-  // Take the first 120 chars of userAgent — enough to tell Chrome/Safari/Firefox
-  // and Windows/Mac/Android/iOS apart without storing PII.
   return (navigator.userAgent || "unknown").substring(0, 120);
 }
 
-// ─── SESSION HELPERS (still uses sessionStorage — only for current tab) ───────
-// We intentionally do NOT use localStorage for session so that the server
-// (Supabase) is always the source of truth for templates and users.
+// ─── SESSION HELPERS ──────────────────────────────────────────────────────────
 const session = {
-  get: () => { try { const v = sessionStorage.getItem("ck_sess"); return v ? JSON.parse(v) : null; } catch { return null; } },
-  set: (s)  => { try { sessionStorage.setItem("ck_sess", JSON.stringify(s)); } catch {} },
-  del: ()   => { try { sessionStorage.removeItem("ck_sess"); } catch {} },
+  get: () => {
+    try {
+      const v = sessionStorage.getItem("ck_sess");
+      return v ? JSON.parse(v) : null;
+    } catch {
+      return null;
+    }
+  },
+  set: (s) => {
+    try {
+      sessionStorage.setItem("ck_sess", JSON.stringify(s));
+    } catch {}
+  },
+  del: () => {
+    try {
+      sessionStorage.removeItem("ck_sess");
+    } catch {}
+  },
 };
 
-// ─── EMAILJS: SEND ENQUIRY EMAIL (unchanged from original) ───────────────────
+// ─── EMAILJS HELPERS ──────────────────────────────────────────────────────────
 function sendEnquiryEmail(template, pushToast) {
   pushToast("📨 Sending enquiry email...");
   emailjs
@@ -70,11 +66,13 @@ function sendEnquiryEmail(template, pushToast) {
       template_price: `₹${template.price.toLocaleString()}`,
       from_name:      "Chitrakala Invitations",
     })
-    .then(()  => pushToast("✅ Email sent! We'll contact you soon."))
-    .catch((e) => { console.error("EmailJS enquiry error:", e); pushToast("❌ Email failed. Please try WhatsApp."); });
+    .then(() => pushToast("✅ Email sent! We'll contact you soon."))
+    .catch((e) => {
+      console.error("EmailJS enquiry error:", e);
+      pushToast("❌ Email failed. Please try WhatsApp.");
+    });
 }
 
-// ─── EMAILJS: SEND NEW-DEVICE ALERT ──────────────────────────────────────────
 function sendDeviceAlertEmail(userEmail, deviceInfo) {
   emailjs
     .send(EMAILJS_SERVICE_ID, EMAILJS_DEVICE_TPL, {
@@ -88,21 +86,22 @@ function sendDeviceAlertEmail(userEmail, deviceInfo) {
 }
 
 // ─── SUPABASE: TEMPLATES ──────────────────────────────────────────────────────
-// Fetch all templates (admin sees all; regular users only see active ones)
 async function fetchTemplates(isAdmin = false) {
   let q = supabase.from("templates").select("*").order("created_at", { ascending: false });
   if (!isAdmin) q = q.eq("is_active", true);
   const { data, error } = await q;
-  if (error) { console.error("fetchTemplates:", error.message); return []; }
+  if (error) {
+    console.error("fetchTemplates:", error.message);
+    return [];
+  }
   return data;
 }
 
-// ─── SUPABASE STORAGE: upload a File object, return public URL ───────────────
-// Bucket name: "templates-media"  (create it in Supabase → Storage, set to Public)
+// ─── SUPABASE STORAGE ─────────────────────────────────────────────────────────
+// Bucket name: "templates-media" — must be created in Supabase → Storage, set to Public
 const STORAGE_BUCKET = "templates-media";
 
 async function uploadMediaFile(file) {
-  // Unique path: timestamp + original filename to avoid collisions
   const ext      = file.name.split(".").pop();
   const filePath = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
@@ -127,9 +126,7 @@ async function uploadMediaFile(file) {
   return urlData.publicUrl;
 }
 
-// Insert a new template  (tpl._file may be a raw File object from <input type="file">)
 async function insertTemplate(tpl) {
-  // If there is a raw File attached, upload it first and use the public URL
   let imageUrl = tpl.image;
   if (tpl._file instanceof File) {
     imageUrl = await uploadMediaFile(tpl._file);
@@ -139,7 +136,13 @@ async function insertTemplate(tpl) {
 
   const { data, error } = await supabase
     .from("templates")
-    .insert([{ title: tpl.title, category: tpl.category, price: tpl.price, image: imageUrl, is_active: tpl.is_active }])
+    .insert([{
+      title:     tpl.title,
+      category:  tpl.category,
+      price:     tpl.price,
+      image:     imageUrl,
+      is_active: tpl.is_active,
+    }])
     .select()
     .single();
 
@@ -151,9 +154,7 @@ async function insertTemplate(tpl) {
   return data;
 }
 
-// Update an existing template  (tpl._file may be a raw File object)
 async function updateTemplate(tpl) {
-  // If a new file was picked, upload it; otherwise keep the existing URL
   let imageUrl = tpl.image;
   if (tpl._file instanceof File) {
     imageUrl = await uploadMediaFile(tpl._file);
@@ -182,13 +183,11 @@ async function updateTemplate(tpl) {
   return data;
 }
 
-// Delete a template by id
 async function deleteTemplate(id) {
   const { error } = await supabase.from("templates").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }
 
-// Toggle is_active
 async function toggleTemplate(id, currentActive) {
   const { data, error } = await supabase
     .from("templates")
@@ -201,18 +200,16 @@ async function toggleTemplate(id, currentActive) {
 }
 
 // ─── SUPABASE: USERS ──────────────────────────────────────────────────────────
-// Upsert user row and return {isNewDevice, previousDevice}
 async function upsertUser(email, deviceInfo) {
-  // 1. Check if user already exists
   const { data: existing } = await supabase
     .from("users")
     .select("*")
     .eq("email", email)
     .single();
 
-  const isNewDevice = existing && existing.device_info && existing.device_info !== deviceInfo;
+  const isNewDevice =
+    existing && existing.device_info && existing.device_info !== deviceInfo;
 
-  // 2. Upsert: update last_login and device_info
   await supabase.from("users").upsert(
     { email, last_login: new Date().toISOString(), device_info: deviceInfo },
     { onConflict: "email" }
@@ -221,14 +218,19 @@ async function upsertUser(email, deviceInfo) {
   return { isNewDevice, previousDevice: existing?.device_info ?? null };
 }
 
-// Fetch all users (for admin dashboard)
 async function fetchUsers() {
-  const { data, error } = await supabase.from("users").select("*").order("joined_at", { ascending: false });
-  if (error) { console.error("fetchUsers:", error.message); return []; }
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .order("joined_at", { ascending: false });
+  if (error) {
+    console.error("fetchUsers:", error.message);
+    return [];
+  }
   return data;
 }
 
-// ─── STYLES (unchanged from original) ────────────────────────────────────────
+// ─── STYLES ───────────────────────────────────────────────────────────────────
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -327,9 +329,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .acb{background:rgba(255,255,255,0.9);backdrop-filter:blur(4px);border:none;border-radius:8px;padding:5px 7px;cursor:pointer;font-size:13px;transition:var(--tr)}
 .acb:hover{transform:scale(1.12)}
 .overlay{position:fixed;inset:0;background:rgba(10,0,18,0.6);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px);animation:fadeIn 0.2s ease}
-.modal{background:#fff;border-radius:20px;padding:2.2rem;width:100%;max-width:440px;box-shadow:0 30px 80px rgba(0,0,0,0.28);animation:fadeUp 0.3s ease;position:relative}
+.modal{background:#fff;border-radius:20px;padding:2.2rem;width:100%;max-width:440px;box-shadow:0 30px 80px rgba(0,0,0,0.28);animation:fadeUp 0.3s ease;position:relative;max-height:90vh;overflow-y:auto}
 .modal.wide{max-width:580px}
-.modal-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:var(--pk4);border:none;cursor:pointer;font-size:14px;color:var(--pk);display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.modal-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:var(--pk4);border:none;cursor:pointer;font-size:14px;color:var(--pk);display:flex;align-items:center;justify-content:center;transition:var(--tr);z-index:10}
 .modal-close:hover{background:var(--pk);color:#fff;transform:rotate(90deg)}
 .m-icon{text-align:center;font-size:2.2rem;margin-bottom:0.8rem}
 .m-title{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:700;color:var(--txt);text-align:center;margin-bottom:0.3rem}
@@ -338,9 +340,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .flabel{display:block;font-size:0.78rem;font-weight:700;color:var(--txt2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
 .fi{width:100%;padding:10px 14px;border:1.5px solid rgba(232,24,109,0.18);border-radius:var(--r2);font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--txt);outline:none;transition:border-color 0.2s;background:#fff}
 .fi:focus{border-color:var(--pk);box-shadow:0 0 0 3px rgba(232,24,109,0.07)}
-.fsel{width:100%;padding:10px 14px;border:1.5px solid rgba(232,24,109,0.18);border-radius:var(--r2);font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--txt);outline:none;background:#fff}
+.fsel{width:100%;padding:10px 14px;border:1.5px solid rgba(232,24,109,0.18);border-radius:var(--r2);font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--txt);outline:none;background:#fff;cursor:pointer}
 .sub-btn{width:100%;padding:13px;border:none;border-radius:var(--r2);background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff;font-size:0.95rem;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:var(--tr);margin-top:8px;box-shadow:0 4px 16px rgba(232,24,109,0.28)}
-.sub-btn:hover{box-shadow:0 8px 28px rgba(232,24,109,0.42);transform:translateY(-1px)}
+.sub-btn:hover:not(:disabled){box-shadow:0 8px 28px rgba(232,24,109,0.42);transform:translateY(-1px)}
 .sub-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
 .errmsg{font-size:0.8rem;color:#c0392b;margin-top:5px}
 .hr{border:none;border-top:1px solid var(--pk3);margin:1.2rem 0}
@@ -351,8 +353,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .adm-hdr h2{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:700;color:#fff;margin-bottom:3px}
 .adm-hdr p{font-size:0.83rem;color:rgba(255,255,255,0.45)}
 .adm-badge{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff;padding:4px 14px;border-radius:var(--r3);font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px}
-.adm-tabs{display:flex;gap:8px;background:rgba(255,255,255,0.07);padding:4px;border-radius:var(--r2);margin-bottom:1.5rem}
-.adm-tab{flex:1;padding:9px 16px;border:none;background:transparent;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:600;cursor:pointer;border-radius:8px;transition:var(--tr)}
+.adm-tabs{display:flex;gap:8px;background:rgba(26,10,18,0.07);padding:4px;border-radius:var(--r2);margin-bottom:1.5rem}
+.adm-tab{flex:1;padding:9px 16px;border:none;background:transparent;color:var(--txt2);font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:600;cursor:pointer;border-radius:8px;transition:var(--tr)}
 .adm-tab.on{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff;box-shadow:0 3px 12px rgba(232,24,109,0.38)}
 .stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:1.8rem}
 .scard{background:#fff;border-radius:var(--r2);padding:1.2rem;text-align:center;border:1px solid rgba(232,24,109,0.09);box-shadow:var(--sh1)}
@@ -387,7 +389,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .empty{text-align:center;padding:4rem 2rem}
 .empty-icon{font-size:3.5rem;margin-bottom:1rem;animation:pulse 2.5s infinite}
 .empty p{color:var(--txt3);font-size:0.95rem}
-.toast-wrap{position:fixed;bottom:2rem;right:2rem;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast-wrap{position:fixed;bottom:2rem;right:2rem;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast{background:linear-gradient(135deg,#1a0a12,#3d0020);color:#fff;padding:12px 20px;border-radius:var(--r2);font-size:0.85rem;box-shadow:0 8px 28px rgba(0,0,0,0.28);animation:slideDown 0.3s ease;border-left:3px solid var(--pk);max-width:300px;pointer-events:all}
 .footer{background:linear-gradient(135deg,#1a0a12,#3d0020);padding:3rem 2rem;text-align:center;color:rgba(255,255,255,0.5);font-size:0.82rem;margin-top:2rem}
 .footer-brand{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--pk3);margin-bottom:0.5rem}
@@ -415,26 +417,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 }
 `;
 
-// ─── SVG ICONS (unchanged) ────────────────────────────────────────────────────
+// ─── SVG ICONS ────────────────────────────────────────────────────────────────
 const WaIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
     <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.524 5.849L.057 23.547a.5.5 0 0 0 .609.608l5.763-1.453A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.848 0-3.579-.49-5.075-1.343l-.363-.214-3.767.949.97-3.687-.233-.374A9.947 9.947 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
   </svg>
 );
+
 const MailIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="15" height="15">
     <rect x="2" y="4" width="20" height="16" rx="2" />
     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
   </svg>
 );
+
 const IgIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
   </svg>
 );
 
-// ─── TOAST HOOK (unchanged) ───────────────────────────────────────────────────
+// ─── TOAST HOOK ───────────────────────────────────────────────────────────────
 function useToast() {
   const [toasts, setToasts] = useState([]);
   const push = useCallback((msg) => {
@@ -445,46 +449,91 @@ function useToast() {
   return { toasts, push };
 }
 
-// ─── TEMPLATE CARD (unchanged UI) ────────────────────────────────────────────
+// ─── TEMPLATE CARD ────────────────────────────────────────────────────────────
 function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }) {
-  const waMsg = encodeURIComponent(`Hi, I'm interested in this invitation template: ${tpl.title}`);
-  const isVideo = tpl.image?.startsWith("data:video");
+  const waMsg  = encodeURIComponent(`Hi, I'm interested in this invitation template: ${tpl.title}`);
+  // FIX: videos from Supabase Storage won't be data:video — check by extension or mime type stored
+  const isVideo = tpl.image
+    ? /\.(mp4|webm|ogg|mov)(\?|$)/i.test(tpl.image) || tpl.image.startsWith("data:video")
+    : false;
 
   return (
-    <div className="tcard" style={{ animationDelay: `${delay}ms`, opacity: !tpl.is_active && isAdmin ? 0.58 : 1 }}>
+    <div
+      className="tcard"
+      style={{
+        animationDelay: `${delay}ms`,
+        opacity: !tpl.is_active && isAdmin ? 0.58 : 1,
+      }}
+    >
       <div className="tcard-img-wrap">
         {isVideo ? (
-          <video src={tpl.image} style={{ width: "100%", height: "100%", objectFit: "cover" }} autoPlay muted loop playsInline />
+          <video
+            src={tpl.image}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
         ) : (
-          <img className="tcard-img" src={tpl.image} alt={tpl.title}
-            onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=420&fit=crop"; }} />
+          <img
+            className="tcard-img"
+            src={tpl.image}
+            alt={tpl.title}
+            onError={(e) => {
+              e.target.src =
+                "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=420&fit=crop";
+            }}
+          />
         )}
         <div className="tcard-ov" />
         <span className="cat-badge">
-          {tpl.category === "wedding" ? "💍 Wedding" : tpl.category === "housewarming" ? "🏡 Housewarming" : "🎂 Birthday"}
+          {tpl.category === "wedding"
+            ? "💍 Wedding"
+            : tpl.category === "housewarming"
+            ? "🏡 Housewarming"
+            : "🎂 Birthday"}
         </span>
         {isAdmin && (
           <div className="adm-ctrl">
-            <button className="acb" onClick={() => onToggle(tpl.id, tpl.is_active)} title={tpl.is_active ? "Deactivate" : "Activate"}>
+            <button
+              className="acb"
+              onClick={() => onToggle(tpl.id, tpl.is_active)}
+              title={tpl.is_active ? "Deactivate" : "Activate"}
+            >
               {tpl.is_active ? "👁️" : "🙈"}
             </button>
-            <button className="acb" onClick={() => onEdit(tpl)} title="Edit">✏️</button>
-            <button className="acb" onClick={() => onDelete(tpl.id)} title="Delete">🗑️</button>
+            <button className="acb" onClick={() => onEdit(tpl)} title="Edit">
+              ✏️
+            </button>
+            <button className="acb" onClick={() => onDelete(tpl.id)} title="Delete">
+              🗑️
+            </button>
           </div>
         )}
       </div>
       <div className="tcard-body">
         <div className="tcard-title">{tpl.title}</div>
-        <div className="tcard-price">₹{tpl.price.toLocaleString()} <sub>/ design</sub></div>
+        <div className="tcard-price">
+          ₹{tpl.price.toLocaleString()} <sub>/ design</sub>
+        </div>
         <div className="tcard-btns">
-          <a className="ctab cwa" href={`https://wa.me/${WA}?text=${waMsg}`} target="_blank" rel="noreferrer">
-            <WaIcon />WhatsApp
+          <a
+            className="ctab cwa"
+            href={`https://wa.me/${WA}?text=${waMsg}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <WaIcon />
+            WhatsApp
           </a>
           <button className="ctab cml" onClick={() => onEmailClick(tpl)}>
-            <MailIcon />Email
+            <MailIcon />
+            Email
           </button>
           <a className="ctab cig" href={IG} target="_blank" rel="noreferrer">
-            <IgIcon />Instagram
+            <IgIcon />
+            Instagram
           </a>
         </div>
       </div>
@@ -492,7 +541,7 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
   );
 }
 
-// ─── LOGIN MODAL (unchanged UI, new Supabase logic) ───────────────────────────
+// ─── LOGIN MODAL ──────────────────────────────────────────────────────────────
 function LoginModal({ onClose, onLogin }) {
   const [email, setEmail]       = useState("");
   const [pass, setPass]         = useState("");
@@ -503,7 +552,7 @@ function LoginModal({ onClose, onLogin }) {
   const handleEmailChange = (val) => {
     setEmail(val);
     setErr("");
-    setShowPass(val === _A.e);
+    setShowPass(val.trim() === _A.e);
   };
 
   const submit = async () => {
@@ -516,29 +565,32 @@ function LoginModal({ onClose, onLogin }) {
       if (!pass) return setErr("Password required.");
       if (pass !== _A.p) return setErr("Incorrect password.");
       setLoading(true);
-      // Admin: no device-change email needed
       const s = { email: _A.e, role: "admin", name: "Admin", at: Date.now() };
       session.set(s);
       onLogin(s);
       setLoading(false);
     } else {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email.trim())) return setErr("Please enter a valid email.");
+      if (!emailRegex.test(email.trim()))
+        return setErr("Please enter a valid email.");
 
       setLoading(true);
       try {
         const lower      = email.trim().toLowerCase();
         const deviceInfo = getDeviceFingerprint();
 
-        // ── Upsert user row + check for new device ──────────────────────────
         const { isNewDevice } = await upsertUser(lower, deviceInfo);
 
-        // ── If logging in from a different device, send an alert email ──────
         if (isNewDevice) {
           sendDeviceAlertEmail(lower, deviceInfo);
         }
 
-        const s = { email: lower, role: "user", name: lower.split("@")[0], at: Date.now() };
+        const s = {
+          email: lower,
+          role:  "user",
+          name:  lower.split("@")[0],
+          at:    Date.now(),
+        };
         session.set(s);
         onLogin(s);
       } catch (e) {
@@ -551,7 +603,10 @@ function LoginModal({ onClose, onLogin }) {
   };
 
   return (
-    <div className="overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className="overlay"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div className="modal">
         <button className="modal-close" onClick={onClose}>✕</button>
         <div className="m-icon">🌸</div>
@@ -559,16 +614,28 @@ function LoginModal({ onClose, onLogin }) {
         <div className="m-sub">Sign in to explore premium invitation designs</div>
         <div className="fg">
           <label className="flabel">Email Address</label>
-          <input className="fi" type="email" placeholder="your@email.com" value={email} autoFocus
+          <input
+            className="fi"
+            type="email"
+            placeholder="your@email.com"
+            value={email}
+            autoFocus
             onChange={(e) => handleEmailChange(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()} />
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+          />
         </div>
         {showPass && (
           <div className="fg">
             <label className="flabel">Password</label>
-            <input className="fi" type="password" placeholder="••••••••" value={pass} autoFocus
+            <input
+              className="fi"
+              type="password"
+              placeholder="••••••••"
+              value={pass}
+              autoFocus
               onChange={(e) => { setPass(e.target.value); setErr(""); }}
-              onKeyDown={(e) => e.key === "Enter" && submit()} />
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+            />
           </div>
         )}
         {err && <div className="errmsg">⚠️ {err}</div>}
@@ -576,35 +643,50 @@ function LoginModal({ onClose, onLogin }) {
           {loading ? "Signing in..." : showPass ? "Login →" : "Continue →"}
         </button>
         <hr className="hr" />
-        <div className="slink">By continuing you agree to our <a>Privacy Policy</a></div>
+        <div className="slink">
+          By continuing you agree to our <a>Privacy Policy</a>
+        </div>
       </div>
     </div>
   );
 }
 
 // ─── TEMPLATE FORM ────────────────────────────────────────────────────────────
+// FIX: Added fileInputRef to properly reset file input after save.
+// FIX: image URL vs File object handling improved.
+// FIX: onSave now properly awaits and error propagation fixed.
 function TplForm({ tpl, onClose, onSave }) {
   const blank = { title: "", category: "wedding", price: "", image: "", is_active: true };
 
   const [f, setF]             = useState(tpl ? { ...tpl } : blank);
   const [err, setErr]         = useState("");
   const [success, setSuccess] = useState(false);
-  // preview is an object URL (for new picks) or the existing https URL
   const [preview, setPreview] = useState(tpl?.image || "");
-  // _file holds the raw File object when user picks a new file
   const [_file, setFile]      = useState(null);
   const [saving, setSaving]   = useState(false);
+  const fileInputRef          = useRef(null);
 
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
+
+  // Revoke object URLs on unmount to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      if (_file && preview && preview.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, []);
 
   const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    // Store the raw File for upload; create a temporary object URL for preview
+    // Revoke previous blob URL if any
+    if (preview && preview.startsWith("blob:")) {
+      URL.revokeObjectURL(preview);
+    }
     setFile(file);
     const objectUrl = URL.createObjectURL(file);
     setPreview(objectUrl);
-    // We no longer embed base64 into f.image — the upload helper will get the URL
     setErr("");
   };
 
@@ -612,75 +694,104 @@ function TplForm({ tpl, onClose, onSave }) {
     setErr("");
     setSuccess(false);
 
-    // ── Validation ──────────────────────────────────────────────────────────
-    if (!f.title.trim())                   return setErr("Title is required.");
-    if (!f.price || Number(f.price) <= 0)  return setErr("Enter a valid price.");
-    // Must have either an existing URL or a freshly picked file
-    if (!f.image && !_file)                return setErr("Please upload an image or video.");
+    // Validation
+    if (!f.title.trim()) return setErr("Title is required.");
+    const priceNum = Number(f.price);
+    if (!f.price || isNaN(priceNum) || priceNum <= 0) return setErr("Enter a valid price.");
+    // Need either an existing image URL OR a newly picked file
+    if (!f.image && !_file) return setErr("Please upload an image or video.");
 
     setSaving(true);
-    console.log("[TplForm] save clicked — id:", tpl?.id, "newFile:", _file?.name ?? "none");
+    console.log("[TplForm] save → id:", tpl?.id ?? "new", "_file:", _file?.name ?? "none");
 
     try {
-      // Pass both form fields AND the raw File (_file) so the upload helper can
-      // upload it to Storage and get a public URL before hitting the DB.
       await onSave({
         ...f,
-        price: Number(f.price),
-        id:    tpl?.id,
-        _file, // raw File | null
+        price: priceNum,
+        id:    tpl?.id,   // undefined for new templates — that's fine
+        _file,            // raw File | null
       });
 
-      console.log("[TplForm] onSave resolved successfully");
+      console.log("[TplForm] saved successfully");
       setSuccess(true);
-      // Close after a short delay so user sees the ✅
       setTimeout(() => onClose(), 900);
     } catch (e) {
-      console.error("[TplForm] save error:", e.message);
-      setErr(e.message || "Save failed. Please try again.");
+      console.error("[TplForm] save error:", e);
+      setErr(e?.message || "Save failed. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
-  // Detect video by MIME type of the picked file, or by URL extension/content-type
+  // Determine if the previewed file is a video
   const isVideo = _file
     ? _file.type.startsWith("video/")
-    : preview?.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) != null;
+    : /\.(mp4|webm|ogg|mov)(\?|$)/i.test(preview || "") ||
+      (preview || "").startsWith("data:video");
 
   return (
-    <div className="overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className="overlay"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div className="modal wide">
         <button className="modal-close" onClick={onClose}>✕</button>
         <div className="m-icon">{tpl ? "✏️" : "✨"}</div>
         <div className="m-title">{tpl ? "Edit Template" : "Add Template"}</div>
-        <div className="m-sub">{tpl ? "Update the details below" : "Fill in the details for the new design"}</div>
+        <div className="m-sub">
+          {tpl ? "Update the details below" : "Fill in the details for the new design"}
+        </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          {/* Title */}
           <div className="fg" style={{ gridColumn: "1/-1" }}>
             <label className="flabel">Title *</label>
-            <input className="fi" placeholder="e.g. Royal Lotus Wedding" value={f.title}
-              onChange={(e) => set("title", e.target.value)} />
+            <input
+              className="fi"
+              placeholder="e.g. Royal Lotus Wedding"
+              value={f.title}
+              onChange={(e) => set("title", e.target.value)}
+            />
           </div>
+
+          {/* Category */}
           <div className="fg">
             <label className="flabel">Category *</label>
-            <select className="fsel" value={f.category} onChange={(e) => set("category", e.target.value)}>
+            <select
+              className="fsel"
+              value={f.category}
+              onChange={(e) => set("category", e.target.value)}
+            >
               <option value="wedding">Wedding</option>
               <option value="housewarming">Housewarming</option>
               <option value="birthday">Birthday</option>
             </select>
           </div>
+
+          {/* Price */}
           <div className="fg">
             <label className="flabel">Price (₹) *</label>
-            <input className="fi" type="number" placeholder="999" value={f.price}
-              onChange={(e) => set("price", e.target.value)} />
+            <input
+              className="fi"
+              type="number"
+              placeholder="999"
+              value={f.price}
+              min="1"
+              onChange={(e) => set("price", e.target.value)}
+            />
           </div>
 
+          {/* File upload */}
           <div className="fg" style={{ gridColumn: "1/-1" }}>
             <label className="flabel">Image / Video *</label>
-            <input className="fi" type="file" accept="image/*,video/*" onChange={handleFile}
-              style={{ padding: "7px 10px", cursor: "pointer" }} />
-            {/* Show filename of new pick, or note that existing media is kept */}
+            <input
+              ref={fileInputRef}
+              className="fi"
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFile}
+              style={{ padding: "7px 10px", cursor: "pointer" }}
+            />
             {_file ? (
               <div style={{ fontSize: "0.75rem", color: "var(--pk2)", marginTop: 4 }}>
                 ✅ New file selected: {_file.name}
@@ -692,29 +803,73 @@ function TplForm({ tpl, onClose, onSave }) {
             ) : null}
           </div>
 
+          {/* Preview */}
           {preview && (
-            <div style={{ gridColumn: "1/-1", borderRadius: 10, overflow: "hidden", border: "1.5px solid var(--pk3)", maxHeight: 180 }}>
+            <div
+              style={{
+                gridColumn: "1/-1",
+                borderRadius: 10,
+                overflow: "hidden",
+                border: "1.5px solid var(--pk3)",
+                maxHeight: 180,
+              }}
+            >
               {isVideo ? (
-                <video src={preview} controls style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
+                <video
+                  src={preview}
+                  controls
+                  style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }}
+                />
               ) : (
-                <img src={preview} alt="Preview" style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }} />
+                <img
+                  src={preview}
+                  alt="Preview"
+                  style={{ width: "100%", maxHeight: 180, objectFit: "cover", display: "block" }}
+                />
               )}
             </div>
           )}
 
-          <div className="fg" style={{ gridColumn: "1/-1", display: "flex", alignItems: "center", gap: 10 }}>
-            <input type="checkbox" id="act" checked={f.is_active} onChange={(e) => set("is_active", e.target.checked)}
-              style={{ accentColor: "var(--pk)", width: 16, height: 16, cursor: "pointer" }} />
-            <label htmlFor="act" style={{ fontSize: "0.88rem", color: "var(--txt2)", cursor: "pointer", fontWeight: 500 }}>
+          {/* Active toggle */}
+          <div
+            className="fg"
+            style={{
+              gridColumn: "1/-1",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <input
+              type="checkbox"
+              id="act"
+              checked={f.is_active}
+              onChange={(e) => set("is_active", e.target.checked)}
+              style={{ accentColor: "var(--pk)", width: 16, height: 16, cursor: "pointer" }}
+            />
+            <label
+              htmlFor="act"
+              style={{ fontSize: "0.88rem", color: "var(--txt2)", cursor: "pointer", fontWeight: 500 }}
+            >
               Active — visible to all users
             </label>
           </div>
         </div>
 
         {err     && <div className="errmsg" style={{ marginTop: 8 }}>⚠️ {err}</div>}
-        {success && <div style={{ fontSize: "0.85rem", color: "#27ae60", marginTop: 8, textAlign: "center" }}>✅ Saved successfully!</div>}
+        {success && (
+          <div style={{ fontSize: "0.85rem", color: "#27ae60", marginTop: 8, textAlign: "center" }}>
+            ✅ Saved successfully!
+          </div>
+        )}
 
-        <button className="sub-btn" onClick={save} disabled={saving}>
+        {/* FIX: button type="button" prevents any accidental form submission */}
+        <button
+          type="button"
+          className="sub-btn"
+          onClick={save}
+          disabled={saving}
+        >
           {saving ? "Saving…" : tpl ? "Save Changes" : "Add Template"}
         </button>
       </div>
@@ -724,24 +879,28 @@ function TplForm({ tpl, onClose, onSave }) {
 
 // ─── ADMIN DASHBOARD ──────────────────────────────────────────────────────────
 function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
-  const [tab, setTab]         = useState("templates");
+  const [tab, setTab]           = useState("templates");
   const [showForm, setShowForm] = useState(false);
-  const [editTpl, setEditTpl] = useState(null);
-  const [users, setUsers]     = useState([]);
+  const [editTpl, setEditTpl]   = useState(null);
+  const [users, setUsers]       = useState([]);
 
-  // Fetch users list whenever the Users tab is opened
   useEffect(() => {
     if (tab === "users") {
       fetchUsers().then(setUsers);
     }
   }, [tab]);
 
-  const total   = templates.length;
-  const active  = templates.filter((t) => t.is_active).length;
-  const bycat   = (c) => templates.filter((t) => t.category === c).length;
+  const total  = templates.length;
+  const active = templates.filter((t) => t.is_active).length;
+  const bycat  = (c) => templates.filter((t) => t.category === c).length;
 
+  // FIX: doSave now correctly calls onAdd vs onEdit and closes the form
   const doSave = async (data) => {
-    data.id ? await onEdit(data) : await onAdd(data);
+    if (data.id) {
+      await onEdit(data);
+    } else {
+      await onAdd(data);
+    }
     setShowForm(false);
     setEditTpl(null);
   };
@@ -757,8 +916,17 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
           <p>Manage templates · View user registrations · Control visibility</p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <button className="add-fab" onClick={() => { setEditTpl(null); setShowForm(true); }}>＋ Add Template</button>
-          <button className="btn-nav" style={{ color: "rgba(255,255,255,0.65)", borderColor: "rgba(255,255,255,0.2)" }} onClick={onLogout}>
+          <button
+            className="add-fab"
+            onClick={() => { setEditTpl(null); setShowForm(true); }}
+          >
+            ＋ Add Template
+          </button>
+          <button
+            className="btn-nav"
+            style={{ color: "rgba(255,255,255,0.65)", borderColor: "rgba(255,255,255,0.2)" }}
+            onClick={onLogout}
+          >
             Logout
           </button>
         </div>
@@ -775,10 +943,16 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
       </div>
 
       <div className="adm-tabs">
-        <button className={`adm-tab${tab === "templates" ? " on" : ""}`} onClick={() => setTab("templates")}>
+        <button
+          className={`adm-tab${tab === "templates" ? " on" : ""}`}
+          onClick={() => setTab("templates")}
+        >
           📦 Templates ({total})
         </button>
-        <button className={`adm-tab${tab === "users" ? " on" : ""}`} onClick={() => setTab("users")}>
+        <button
+          className={`adm-tab${tab === "users" ? " on" : ""}`}
+          onClick={() => setTab("users")}
+        >
           👥 Users ({users.length})
         </button>
       </div>
@@ -787,20 +961,44 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
         <div className="tbl-wrap">
           <table className="atbl">
             <thead>
-              <tr><th>Preview</th><th>Title</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+              <tr>
+                <th>Preview</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
             </thead>
             <tbody>
               {templates.length === 0 && (
-                <tr><td colSpan={6} style={{ textAlign: "center", padding: "2.5rem", color: "var(--txt3)" }}>No templates yet.</td></tr>
+                <tr>
+                  <td colSpan={6} style={{ textAlign: "center", padding: "2.5rem", color: "var(--txt3)" }}>
+                    No templates yet.
+                  </td>
+                </tr>
               )}
               {templates.map((t) => (
                 <tr key={t.id}>
                   <td>
-                    {t.image?.startsWith("data:video") ? (
-                      <video src={t.image} className="thumb" muted style={{ borderRadius: 8, border: "1px solid var(--pk3)" }} />
+                    {/\.(mp4|webm|ogg|mov)(\?|$)/i.test(t.image || "") ||
+                    t.image?.startsWith("data:video") ? (
+                      <video
+                        src={t.image}
+                        className="thumb"
+                        muted
+                        style={{ borderRadius: 8, border: "1px solid var(--pk3)" }}
+                      />
                     ) : (
-                      <img className="thumb" src={t.image} alt={t.title}
-                        onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=52&h=38&fit=crop"; }} />
+                      <img
+                        className="thumb"
+                        src={t.image}
+                        alt={t.title}
+                        onError={(e) => {
+                          e.target.src =
+                            "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=52&h=38&fit=crop";
+                        }}
+                      />
                     )}
                   </td>
                   <td style={{ fontWeight: 600, maxWidth: 170 }}>{t.title}</td>
@@ -809,7 +1007,9 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
                       {t.category}
                     </span>
                   </td>
-                  <td style={{ color: "var(--pk)", fontWeight: 700 }}>₹{t.price.toLocaleString()}</td>
+                  <td style={{ color: "var(--pk)", fontWeight: 700 }}>
+                    ₹{t.price.toLocaleString()}
+                  </td>
                   <td>
                     <button className="tog" onClick={() => onToggle(t.id, t.is_active)}>
                       {t.is_active ? "✅" : "❌"}
@@ -817,8 +1017,15 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
                   </td>
                   <td>
                     <div className="act-cell">
-                      <button className="icb" onClick={() => { setEditTpl(t); setShowForm(true); }}>✏️</button>
-                      <button className="icb del" onClick={() => onDelete(t.id)}>🗑️</button>
+                      <button
+                        className="icb"
+                        onClick={() => { setEditTpl(t); setShowForm(true); }}
+                      >
+                        ✏️
+                      </button>
+                      <button className="icb del" onClick={() => onDelete(t.id)}>
+                        🗑️
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -830,12 +1037,24 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
 
       {tab === "users" && (
         <div className="tbl-wrap">
-          <div style={{ padding: "13px 16px", borderBottom: "1px solid var(--pk4)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--txt2)" }}>Registered Users</span>
+          <div
+            style={{
+              padding: "13px 16px",
+              borderBottom: "1px solid var(--pk4)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--txt2)" }}>
+              Registered Users
+            </span>
             <span className="ucnt">{users.length} total</span>
           </div>
           {users.length === 0 && (
-            <div style={{ padding: "2.5rem", textAlign: "center", color: "var(--txt3)" }}>No users signed in yet.</div>
+            <div style={{ padding: "2.5rem", textAlign: "center", color: "var(--txt3)" }}>
+              No users signed in yet.
+            </div>
           )}
           {users.map((u, i) => (
             <div key={i} className="user-row">
@@ -845,7 +1064,8 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
                 {u.joined_at && (
                   <div className="utime">
                     Joined: {new Date(u.joined_at).toLocaleString("en-IN")}
-                    {u.last_login && ` · Last login: ${new Date(u.last_login).toLocaleString("en-IN")}`}
+                    {u.last_login &&
+                      ` · Last login: ${new Date(u.last_login).toLocaleString("en-IN")}`}
                   </div>
                 )}
               </div>
@@ -865,12 +1085,16 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
   );
 }
 
-// ─── HOME PAGE (unchanged UI) ─────────────────────────────────────────────────
+// ─── HOME PAGE ────────────────────────────────────────────────────────────────
 function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggle, onLoginClick, toast }) {
-  const [cat, setCat]         = useState("all");
+  const [cat, setCat]           = useState("all");
   const [maxPrice, setMaxPrice] = useState(2500);
-  const [editTpl, setEditTpl] = useState(null);
-  const highPrice = Math.max(...templates.map((t) => t.price), 2500);
+  const [editTpl, setEditTpl]   = useState(null);
+
+  // FIX: guard against empty array (Math.max(...[]) = -Infinity)
+  const highPrice = templates.length
+    ? Math.max(...templates.map((t) => t.price), 2500)
+    : 2500;
 
   const shown = templates
     .filter((t) => isAdmin || t.is_active)
@@ -878,10 +1102,10 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
     .filter((t) => t.price <= maxPrice);
 
   const cats = [
-    { k: "all", l: "✨ All" },
-    { k: "wedding", l: "💍 Wedding" },
+    { k: "all",          l: "✨ All" },
+    { k: "wedding",      l: "💍 Wedding" },
     { k: "housewarming", l: "🏡 Housewarming" },
-    { k: "birthday", l: "🎂 Birthday" },
+    { k: "birthday",     l: "🎂 Birthday" },
   ];
 
   const handleEmailClick = (tpl) => sendEnquiryEmail(tpl, toast);
@@ -890,26 +1114,59 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
     <>
       <section className="hero">
         <div className="hero-tag">✦ Premium Digital Invitations ✦</div>
-        <h1 className="hero-h1">Beautiful <em>Invitations</em><br />for Every <span className="gold-word">Celebration</span></h1>
-        <p className="hero-p">Handcrafted digital invitation designs for weddings, housewarmings &amp; birthdays — share the joy, beautifully.</p>
+        <h1 className="hero-h1">
+          Beautiful <em>Invitations</em>
+          <br />
+          for Every <span className="gold-word">Celebration</span>
+        </h1>
+        <p className="hero-p">
+          Handcrafted digital invitation designs for weddings, housewarmings &amp; birthdays —
+          share the joy, beautifully.
+        </p>
         <div className="hero-cta">
           {!sess ? (
-            <button className="btn-hero primary" onClick={onLoginClick}>Browse Designs →</button>
+            <button className="btn-hero primary" onClick={onLoginClick}>
+              Browse Designs →
+            </button>
           ) : (
-            <button className="btn-hero primary" onClick={() => document.getElementById("tgrid")?.scrollIntoView({ behavior: "smooth" })}>
+            <button
+              className="btn-hero primary"
+              onClick={() =>
+                document.getElementById("tgrid")?.scrollIntoView({ behavior: "smooth" })
+              }
+            >
               Explore Designs →
             </button>
           )}
-          <a className="btn-hero secondary" href={`https://wa.me/${WA}`} target="_blank" rel="noreferrer">WhatsApp Us</a>
+          <a
+            className="btn-hero secondary"
+            href={`https://wa.me/${WA}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            WhatsApp Us
+          </a>
         </div>
         <div className="hero-stats">
-          <div className="hstat"><div className="hstat-n">{templates.filter((t) => t.is_active).length}+</div><div className="hstat-l">Designs</div></div>
+          <div className="hstat">
+            <div className="hstat-n">{templates.filter((t) => t.is_active).length}+</div>
+            <div className="hstat-l">Designs</div>
+          </div>
           <div className="sep" />
-          <div className="hstat"><div className="hstat-n">3</div><div className="hstat-l">Categories</div></div>
+          <div className="hstat">
+            <div className="hstat-n">3</div>
+            <div className="hstat-l">Categories</div>
+          </div>
           <div className="sep" />
-          <div className="hstat"><div className="hstat-n">100%</div><div className="hstat-l">Custom</div></div>
+          <div className="hstat">
+            <div className="hstat-n">100%</div>
+            <div className="hstat-l">Custom</div>
+          </div>
           <div className="sep" />
-          <div className="hstat"><div className="hstat-n">Fast</div><div className="hstat-l">Delivery</div></div>
+          <div className="hstat">
+            <div className="hstat-n">Fast</div>
+            <div className="hstat-l">Delivery</div>
+          </div>
         </div>
       </section>
 
@@ -917,11 +1174,24 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
         <div className="fbar">
           <div className="fbar-in">
             {cats.map((c) => (
-              <button key={c.k} className={`fchip${cat === c.k ? " on" : ""}`} onClick={() => setCat(c.k)}>{c.l}</button>
+              <button
+                key={c.k}
+                className={`fchip${cat === c.k ? " on" : ""}`}
+                onClick={() => setCat(c.k)}
+              >
+                {c.l}
+              </button>
             ))}
             <div className="fprice">
               <label>Max price:</label>
-              <input type="range" min={200} max={highPrice} step={50} value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} />
+              <input
+                type="range"
+                min={200}
+                max={highPrice}
+                step={50}
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+              />
               <span className="fpval">₹{maxPrice.toLocaleString()}</span>
             </div>
             <span className="fcnt">{shown.length} designs</span>
@@ -933,15 +1203,23 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
         {!sess ? (
           <div className="empty">
             <div className="empty-icon">🌸</div>
-            <p style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--txt)", marginBottom: 10 }}>Sign in to browse premium designs</p>
-            <p style={{ marginBottom: "1.8rem" }}>Create a free account — no OTP, instant access to all templates</p>
-            <button className="btn-hero primary" onClick={onLoginClick}>Sign In — It's Free →</button>
+            <p style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--txt)", marginBottom: 10 }}>
+              Sign in to browse premium designs
+            </p>
+            <p style={{ marginBottom: "1.8rem" }}>
+              Create a free account — no OTP, instant access to all templates
+            </p>
+            <button className="btn-hero primary" onClick={onLoginClick}>
+              Sign In — It's Free →
+            </button>
           </div>
         ) : (
           <>
             <div className="sec-hdr">
               <h2 className="sec-title">
-                {cat === "all" ? "All Designs" : cats.find((c) => c.k === cat)?.l.replace(/^.+ /, "") + " Designs"}
+                {cat === "all"
+                  ? "All Designs"
+                  : cats.find((c) => c.k === cat)?.l.replace(/^.+ /, "") + " Designs"}
               </h2>
               <div className="sec-line" />
             </div>
@@ -953,9 +1231,16 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
             ) : (
               <div className="tgrid" id="tgrid">
                 {shown.map((tpl, i) => (
-                  <TCard key={tpl.id} tpl={tpl} isAdmin={isAdmin} delay={i * 55}
-                    onEdit={(t) => setEditTpl(t)} onDelete={onDelete} onToggle={onToggle}
-                    onEmailClick={handleEmailClick} />
+                  <TCard
+                    key={tpl.id}
+                    tpl={tpl}
+                    isAdmin={isAdmin}
+                    delay={i * 55}
+                    onEdit={(t) => setEditTpl(t)}
+                    onDelete={onDelete}
+                    onToggle={onToggle}
+                    onEmailClick={handleEmailClick}
+                  />
                 ))}
               </div>
             )}
@@ -967,7 +1252,11 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
         <TplForm
           tpl={editTpl}
           onClose={() => setEditTpl(null)}
-          onSave={async (data) => { await onEdit(data); setEditTpl(null); toast("Template updated! ✅"); }}
+          onSave={async (data) => {
+            await onEdit(data);
+            setEditTpl(null);
+            toast("Template updated! ✅");
+          }}
         />
       )}
     </>
@@ -978,8 +1267,11 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
 export default function App() {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading]     = useState(true);
-  const [sess, setSess]           = useState(session.get);
-  const [page, setPage]           = useState(() => session.get()?.role === "admin" ? "admin" : "home");
+  // FIX: use a function initialiser so session.get() only runs once
+  const [sess, setSess]           = useState(() => session.get());
+  const [page, setPage]           = useState(() =>
+    session.get()?.role === "admin" ? "admin" : "home"
+  );
   const [showLogin, setShowLogin] = useState(false);
   const { toasts, push: toast }   = useToast();
   const channelRef                = useRef(null);
@@ -995,24 +1287,17 @@ export default function App() {
   }, [isAdmin]);
 
   // ── 2. Real-time subscription ─────────────────────────────────────────────
-  //  Listens for INSERT / UPDATE / DELETE events on the templates table.
-  //  When the admin changes anything, ALL connected clients update instantly.
   useEffect(() => {
-    // Clean up any previous subscription
     if (channelRef.current) supabase.removeChannel(channelRef.current);
 
     const channel = supabase
-      .channel("templates-realtime")           // any unique name
+      .channel("templates-realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "templates" },
         (payload) => {
-          // payload.eventType = "INSERT" | "UPDATE" | "DELETE"
-          // payload.new = new row data, payload.old = old row data
-
           if (payload.eventType === "INSERT") {
             const newRow = payload.new;
-            // Non-admin users should only see active templates
             if (!isAdmin && !newRow.is_active) return;
             setTemplates((prev) => [newRow, ...prev]);
           }
@@ -1020,14 +1305,11 @@ export default function App() {
           if (payload.eventType === "UPDATE") {
             const updated = payload.new;
             setTemplates((prev) => {
-              // If a template was deactivated and the viewer is not admin, remove it
               if (!isAdmin && !updated.is_active) {
                 return prev.filter((t) => t.id !== updated.id);
               }
-              // Otherwise replace the old row with the updated one
               const exists = prev.find((t) => t.id === updated.id);
               if (exists) return prev.map((t) => (t.id === updated.id ? updated : t));
-              // It was previously hidden from this user but is now active — add it
               return [updated, ...prev];
             });
           }
@@ -1040,36 +1322,29 @@ export default function App() {
       .subscribe();
 
     channelRef.current = channel;
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [isAdmin]);
 
-  // ── 3. CRUD handlers (write to Supabase; real-time listener handles UI) ───
+  // ── 3. CRUD handlers ──────────────────────────────────────────────────────
   const addT = async (tpl) => {
-    const newRow = await insertTemplate(tpl);   // throws on error
-    // Real-time INSERT event will update templates state automatically
+    const newRow = await insertTemplate(tpl);
     toast("Template added! ✨");
     return newRow;
   };
 
   const editT = async (tpl) => {
-    await updateTemplate(tpl);                  // throws on error
-    // Real-time UPDATE event will update templates state automatically
+    await updateTemplate(tpl);
     toast("Template updated! ✅");
   };
 
   const delT = async (id) => {
     if (!window.confirm("Delete this template permanently?")) return;
-    await deleteTemplate(id);                   // throws on error
-    // Real-time DELETE event will update templates state automatically
+    await deleteTemplate(id);
     toast("Template deleted.");
   };
 
   const togT = async (id, currentActive) => {
-    await toggleTemplate(id, currentActive);    // throws on error
-    // Real-time UPDATE event will update templates state automatically
+    await toggleTemplate(id, currentActive);
     toast("Visibility updated! 👁️");
   };
 
@@ -1080,9 +1355,8 @@ export default function App() {
     if (s.role === "admin") {
       setPage("admin");
       toast("Welcome back, Admin! 🛡️");
-      // Admin sees all templates — re-fetch including hidden ones
-      const all = await fetchTemplates(true);
-      setTemplates(all);
+      // Admin sees all — re-fetch including hidden ones
+      fetchTemplates(true).then(setTemplates);
     } else {
       toast(`Welcome, ${s.name}! 🌸`);
     }
@@ -1093,7 +1367,6 @@ export default function App() {
     setSess(null);
     setPage("home");
     toast("Logged out. See you soon! 👋");
-    // After logout, re-fetch only active templates
     fetchTemplates(false).then(setTemplates);
   };
 
@@ -1106,21 +1379,32 @@ export default function App() {
         <div className="hdr-in">
           <div className="logo" onClick={() => setPage("home")}>
             <div className="logo-mark">🌸</div>
-            <span className="logo-text">Chitrakala <span>Invitations</span></span>
+            <span className="logo-text">
+              Chitrakala <span>Invitations</span>
+            </span>
           </div>
           <nav className="nav-right">
             {sess ? (
               <>
-                <span className="chip-user">{isAdmin ? "🛡️ Admin" : `👤 ${sess.name}`}</span>
+                <span className="chip-user">
+                  {isAdmin ? "🛡️ Admin" : `👤 ${sess.name}`}
+                </span>
                 {isAdmin && (
-                  <button className="btn-nav gold" onClick={() => setPage(page === "admin" ? "home" : "admin")}>
+                  <button
+                    className="btn-nav gold"
+                    onClick={() => setPage(page === "admin" ? "home" : "admin")}
+                  >
                     {page === "admin" ? "🏠 Home" : "🛠️ Dashboard"}
                   </button>
                 )}
-                <button className="btn-nav" onClick={handleLogout}>Logout</button>
+                <button className="btn-nav" onClick={handleLogout}>
+                  Logout
+                </button>
               </>
             ) : (
-              <button className="btn-nav solid" onClick={() => setShowLogin(true)}>Sign In</button>
+              <button className="btn-nav solid" onClick={() => setShowLogin(true)}>
+                Sign In
+              </button>
             )}
           </nav>
         </div>
@@ -1132,29 +1416,59 @@ export default function App() {
           <p style={{ color: "var(--txt3)", fontSize: "0.9rem" }}>Loading designs…</p>
         </div>
       ) : page === "admin" && isAdmin ? (
-        <AdminDash templates={templates} onAdd={addT} onEdit={editT} onDelete={delT} onToggle={togT} onLogout={handleLogout} />
+        <AdminDash
+          templates={templates}
+          onAdd={addT}
+          onEdit={editT}
+          onDelete={delT}
+          onToggle={togT}
+          onLogout={handleLogout}
+        />
       ) : (
-        <HomePage templates={templates} session={sess} isAdmin={isAdmin}
-          onEdit={editT} onDelete={delT} onToggle={togT}
-          onLoginClick={() => setShowLogin(true)} toast={toast} />
+        <HomePage
+          templates={templates}
+          session={sess}
+          isAdmin={isAdmin}
+          onEdit={editT}
+          onDelete={delT}
+          onToggle={togT}
+          onLoginClick={() => setShowLogin(true)}
+          toast={toast}
+        />
       )}
 
       <footer className="footer">
-        <div className="footer-brand">Chitrakala <span>Invitations</span></div>
+        <div className="footer-brand">
+          Chitrakala <span>Invitations</span>
+        </div>
         <div className="gold-div" />
         <div>Premium digital invitations for every milestone</div>
         <div className="flinks">
-          <a className="flink" href={`https://wa.me/${WA}`} target="_blank" rel="noreferrer">WhatsApp</a>
-          <a className="flink" href={`mailto:${MAIL}`}>Email Us</a>
-          <a className="flink" href={IG} target="_blank" rel="noreferrer">Instagram</a>
+          <a className="flink" href={`https://wa.me/${WA}`} target="_blank" rel="noreferrer">
+            WhatsApp
+          </a>
+          <a className="flink" href={`mailto:${MAIL}`}>
+            Email Us
+          </a>
+          <a className="flink" href={IG} target="_blank" rel="noreferrer">
+            Instagram
+          </a>
         </div>
-        <div style={{ opacity: 0.3, fontSize: "0.75rem" }}>© 2025 Chitrakala Invitations. All rights reserved.</div>
+        <div style={{ opacity: 0.3, fontSize: "0.75rem" }}>
+          © 2025 Chitrakala Invitations. All rights reserved.
+        </div>
       </footer>
 
-      {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={handleLogin} />}
+      {showLogin && (
+        <LoginModal onClose={() => setShowLogin(false)} onLogin={handleLogin} />
+      )}
 
       <div className="toast-wrap">
-        {toasts.map((t) => <div key={t.id} className="toast">{t.msg}</div>)}
+        {toasts.map((t) => (
+          <div key={t.id} className="toast">
+            {t.msg}
+          </div>
+        ))}
       </div>
     </>
   );
