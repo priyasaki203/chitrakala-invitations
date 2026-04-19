@@ -230,29 +230,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .adm-ctrl{position:absolute;top:10px;right:10px;display:flex;gap:5px;z-index:5}
 .acb{background:rgba(255,255,255,0.9);border:none;border-radius:8px;padding:5px 7px;cursor:pointer;font-size:13px;transition:var(--tr)}
 .acb:hover{transform:scale(1.12)}
-
-/* ══════════════════════════════════════════════════════
-   VIDEO PLAYER MODAL — full rewrite for Android fix
-   KEY INSIGHT: The black split-screen happened because
-   vpm-overlay used display:flex which split the viewport.
-   Fix: make the overlay position:fixed with full inset:0
-   and the video fills 100vw x 100vh using object-fit:contain.
-   The <video> element itself is the clickable close area.
-   ══════════════════════════════════════════════════════ */
-
-/* Overlay fills the entire screen — no flex splitting */
 .vpm-overlay{
   position:fixed;
   top:0;left:0;right:0;bottom:0;
   background:#000;
   z-index:9000;
   animation:fadeIn 0.15s ease;
-  /* Safe area insets for notch phones */
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
-
-/* Video fills the full overlay, object-fit:contain avoids cropping */
 .vpm-video{
   position:absolute;
   top:0;left:0;
@@ -262,13 +248,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
   background:#000;
   display:block;
   outline:none;
-  /* Hidden until video data arrives */
   opacity:0;
   transition:opacity 0.3s ease;
 }
 .vpm-video.ready{ opacity:1; }
-
-/* Loading state — centered spinner + text over the black bg */
 .vpm-loading{
   position:absolute;
   top:50%;left:50%;
@@ -282,7 +265,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
   z-index:2;
 }
 .vpm-loading.gone{ opacity:0; pointer-events:none; }
-
 .vpm-spinner{
   width:48px;height:48px;
   border:3px solid rgba(255,255,255,0.15);
@@ -298,8 +280,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
   line-height:1.5;
   max-width:220px;
 }
-
-/* Close button — top-right corner, always on top */
 .vpm-close{
   position:absolute;
   top:16px;right:16px;
@@ -316,8 +296,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
   -webkit-tap-highlight-color:transparent;
 }
 .vpm-close:active{ background:var(--pk); }
-
-/* Error panel */
 .vpm-error{
   position:absolute;
   top:50%;left:50%;
@@ -333,8 +311,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 }
 .vpm-btn.primary{ background:var(--pk);color:#fff; }
 .vpm-btn.ghost{ background:transparent;color:rgba(255,255,255,0.7);border:1.5px solid rgba(255,255,255,0.25);margin-top:4px; }
-
-/* Video title — bottom overlay */
 .vpm-title{
   position:absolute;
   bottom:0;left:0;right:0;
@@ -348,8 +324,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
   transition:opacity 0.3s ease;
 }
 .vpm-title.gone{ opacity:0; }
-
-/* ── CHOICE SHEET (bottom sheet) ── */
 .vcd-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:8000;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.18s ease}
 .vcd-box{background:#fff;border-radius:22px 22px 0 0;padding:1.6rem 1.6rem 2.4rem;width:100%;max-width:480px;animation:fadeUp 0.25s ease;position:relative}
 .vcd-handle{width:40px;height:4px;border-radius:4px;background:rgba(0,0,0,0.12);margin:0 auto 1.2rem}
@@ -365,8 +339,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .vcd-btn-icon{font-size:1.4rem}
 .vcd-btn.preview{background:var(--pk4);border:1.5px solid var(--pk3);color:var(--pk2)}
 .vcd-btn.fullscreen{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff}
-
-/* ── GENERAL MODAL ── */
 .overlay{position:fixed;inset:0;background:rgba(10,0,18,0.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.2s ease}
 .modal{background:#fff;border-radius:20px;padding:2.2rem;width:100%;max-width:440px;box-shadow:0 30px 80px rgba(0,0,0,0.28);animation:fadeUp 0.3s ease;position:relative;max-height:90vh;overflow-y:auto}
 .modal.wide{max-width:580px}
@@ -511,26 +483,16 @@ function VideoChoiceDialog({ title, onClose, onPreview, onOpenInBrowser }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  VIDEO PREVIEW MODAL — complete rewrite
-//
-//  ROOT CAUSE OF BLACK SPLIT SCREEN:
-//  The previous version used display:flex on .vpm-overlay, which split the
-//  viewport into two halves (flexbox default stretch behavior).
-//  The video element (block) + the loading div each took up half the screen.
-//
-//  FIX APPLIED:
-//  - .vpm-overlay is position:fixed with top/left/right/bottom:0 (no flex)
-//  - .vpm-video is position:absolute filling the entire overlay
-//  - Loading spinner is position:absolute centered with transform
-//  - preload="metadata" (not "none") — "none" on Android sometimes never
-//    fires canplay/loadeddata events at all, keeping it stuck forever
-//  - src set directly on the element — no dynamic assignment
-//  - controls are always visible so user can play manually if needed
+//  VIDEO PREVIEW MODAL
+//  Changes vs previous version:
+//  1. Added `muted` and `autoPlay` attributes to the <video> element
+//  2. In markReady(), set vid.muted = true before calling vid.play()
+//     — muted is required by all mobile browsers to allow programmatic autoplay
 // ═══════════════════════════════════════════════════════════════════════════════
 function VideoPreviewModal({ url, title, onClose }) {
-  const videoRef          = useRef(null);
+  const videoRef            = useRef(null);
   const [status, setStatus] = useState("loading"); // loading | ready | error
-  const didMarkReady      = useRef(false);
+  const didMarkReady        = useRef(false);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -542,16 +504,19 @@ function VideoPreviewModal({ url, title, onClose }) {
     };
   }, []);
 
-  // Mark ready — called from multiple events to cover all Android browsers
+  // ── CHANGE 1: vid.muted = true is set before play() so mobile browsers
+  //             allow autoplay without requiring a user gesture on the video itself.
+  //             The modal open (tap) counts as the gesture; muted lets it proceed.
   const markReady = useCallback(() => {
     if (didMarkReady.current) return;
     didMarkReady.current = true;
     setStatus("ready");
-    // Attempt autoplay — works because we're inside a user-gesture chain (tap opened the modal)
     const vid = videoRef.current;
     if (vid) {
+      vid.muted = true; // ← required for autoplay on iOS / Android Chrome
       vid.play().catch(() => {
-        // Blocked — user will see native controls and can tap play themselves
+        console.log("Autoplay blocked");
+        // Controls are always visible — user can tap play manually
       });
     }
   }, []);
@@ -560,7 +525,7 @@ function VideoPreviewModal({ url, title, onClose }) {
     const vid = videoRef.current;
     if (vid) {
       vid.pause();
-      vid.src = "";  // Fully releases the media pipeline (stops ghost audio on Android)
+      vid.src = ""; // Fully releases media pipeline (stops ghost audio on Android)
       vid.load();
     }
     onClose();
@@ -570,9 +535,7 @@ function VideoPreviewModal({ url, title, onClose }) {
     didMarkReady.current = false;
     setStatus("loading");
     const vid = videoRef.current;
-    if (vid) {
-      vid.load();
-    }
+    if (vid) { vid.load(); }
   };
 
   return (
@@ -580,19 +543,28 @@ function VideoPreviewModal({ url, title, onClose }) {
       {/* Close button — always accessible */}
       <button className="vpm-close" onClick={handleClose} aria-label="Close video">✕</button>
 
-      {/* THE VIDEO — position:absolute fills the entire overlay */}
       {/*
-        preload="metadata":
-          - "none" causes Android WebView to never fire canplay/loadeddata
-          - "auto" causes buffering the whole file before playing (stuck)
-          - "metadata" is the correct balance: loads just enough to start quickly
+        CHANGE 2: Added `muted` and `autoPlay` attributes to the <video> element.
 
-        playsInline:
-          - Without this, iOS opens its own fullscreen player instead of
-            showing our modal — that's what caused the split screen on iOS
+        Why muted:
+          - Browsers block autoplay with sound by default on mobile.
+          - Setting muted (both as attribute + imperatively in markReady) is the
+            only cross-browser way to enable autoplay on iOS Safari and Android Chrome.
 
-        NO autoplay attribute:
-          - We call .play() manually in markReady() after user gesture chain
+        Why autoPlay:
+          - Signals intent to the browser immediately when the element mounts.
+          - Combined with muted, this triggers autoplay in most mobile browsers
+            even before the canplay/loadeddata events fire.
+          - We also call vid.play() in markReady() as a fallback for browsers
+            that ignore the attribute (e.g. some Android WebViews).
+
+        Preserved attributes (unchanged):
+          - controls: always visible so user can play manually if autoplay is blocked
+          - playsInline: prevents iOS from hijacking into fullscreen player
+          - preload="metadata": loads just enough to start quickly without buffering all
+          - onCanPlay, onLoadedData, onPlaying: cross-browser ready detection
+          - onError: error state handling
+          - x5-playsinline, webkit-playsinline: legacy Android/iOS compatibility
       */}
       <video
         ref={videoRef}
@@ -600,6 +572,8 @@ function VideoPreviewModal({ url, title, onClose }) {
         src={url}
         controls
         playsInline
+        muted
+        autoPlay
         preload="metadata"
         onCanPlay={markReady}
         onLoadedData={markReady}
@@ -656,8 +630,6 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
         >
           {isVid ? (
             <>
-              {/* Mobile: static gradient placeholder — no <video> in card (avoids network congestion) */}
-              {/* Desktop: muted video thumbnail */}
               {mobile ? (
                 <div style={{
                   width: "100%", height: "100%",
