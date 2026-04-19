@@ -22,12 +22,10 @@ const WA   = "919840903746";
 const MAIL = "priyasaki190@gmail.com";
 const IG   = "https://instagram.com/priyasaki__19";
 
-// ─── HELPER: detect mobile ────────────────────────────────────────────────────
 function isMobile() {
   return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
 }
 
-// ─── HELPER: detect video URL ─────────────────────────────────────────────────
 function isVideoUrl(url) {
   if (!url) return false;
   if (url.startsWith("data:video")) return true;
@@ -154,8 +152,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 @keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes buffering{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
 
-/* HEADER — no backdrop-filter on mobile for performance */
 .hdr{background:rgba(255,255,255,0.97);border-bottom:1px solid rgba(232,24,109,0.10);position:sticky;top:0;z-index:200;box-shadow:0 2px 18px rgba(232,24,109,0.06)}
 .hdr-in{max-width:1280px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:68px}
 .logo{display:flex;align-items:center;gap:11px;cursor:pointer;text-decoration:none}
@@ -170,7 +168,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .btn-nav.solid:hover{box-shadow:0 6px 24px rgba(232,24,109,0.45);transform:translateY(-1px)}
 .btn-nav.gold{background:linear-gradient(135deg,var(--gd),var(--gd2));color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(201,149,42,0.3)}
 .btn-nav.gold:hover{box-shadow:0 6px 22px rgba(201,149,42,0.45);transform:translateY(-1px)}
-
 .hero{background:linear-gradient(160deg,#fff7fb 0%,#fce8f3 40%,#fdf3dc 100%);padding:5.5rem 2rem 4.5rem;text-align:center;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;top:-60px;right:-80px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(232,24,109,0.07),transparent 70%);pointer-events:none}
 .hero::after{content:'';position:absolute;bottom:-40px;left:-60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(201,149,42,0.07),transparent 70%);pointer-events:none}
@@ -190,7 +187,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .hstat-n{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--pk);line-height:1}
 .hstat-l{font-size:0.73rem;text-transform:uppercase;letter-spacing:1px;color:var(--txt3);margin-top:3px}
 .sep{width:1px;background:linear-gradient(to bottom,transparent,var(--pk3),transparent);align-self:stretch}
-
 .fbar{background:rgba(255,255,255,0.97);border-bottom:1px solid rgba(232,24,109,0.07);position:sticky;top:68px;z-index:190;box-shadow:0 2px 12px rgba(232,24,109,0.03);padding:0.9rem 2rem}
 .fbar-in{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .fchip{padding:7px 20px;border-radius:var(--r3);font-size:0.83rem;font-weight:500;border:1.5px solid rgba(232,24,109,0.16);background:transparent;color:var(--txt2);cursor:pointer;transition:var(--tr);font-family:'DM Sans',sans-serif;white-space:nowrap}
@@ -201,14 +197,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .fprice input[type=range]{accent-color:var(--pk);width:110px;cursor:pointer}
 .fpval{font-size:0.82rem;font-weight:700;color:var(--pk);min-width:60px}
 .fcnt{font-size:0.78rem;color:var(--txt3);background:var(--pk4);padding:4px 12px;border-radius:var(--r3);font-weight:500;white-space:nowrap}
-
 .main{max-width:1280px;margin:0 auto;padding:2.5rem 2rem 4rem}
 .sec-hdr{display:flex;align-items:baseline;gap:12px;margin-bottom:2rem}
 .sec-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;color:var(--txt)}
 .sec-line{flex:1;height:1px;background:linear-gradient(to right,var(--pk3),transparent)}
 .tgrid{display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:center}
-
-/* ── CARD ── */
 .tcard{flex:1 1 260px;max-width:320px;min-width:0;background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1);border:1px solid rgba(232,24,109,0.07);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1),box-shadow 0.32s cubic-bezier(0.4,0,0.2,1);animation:fadeUp 0.5s ease both;position:relative}
 .tcard:hover{transform:translateY(-8px) scale(1.012);box-shadow:var(--sh3)}
 .tcard-img-wrap{position:relative;height:210px;overflow:hidden;background:var(--pk4)}
@@ -240,146 +233,78 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .acb{background:rgba(255,255,255,0.9);border:none;border-radius:8px;padding:5px 7px;cursor:pointer;font-size:13px;transition:var(--tr)}
 .acb:hover{transform:scale(1.12)}
 
-/* ══════════════════════════════════════════════════════
-   VIDEO CHOICE DIALOG
-   - No backdrop-filter (GPU killer on Android)
-   - Slides up from bottom on mobile like a native sheet
-   ══════════════════════════════════════════════════════ */
-.vcd-overlay{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,0.82);
-  z-index:800;
-  display:flex;align-items:flex-end;justify-content:center;
-  animation:fadeIn 0.18s ease;
-}
-.vcd-box{
-  background:#fff;
-  border-radius:22px 22px 0 0;
-  padding:1.6rem 1.6rem 2rem;
-  width:100%;max-width:480px;
-  box-shadow:0 -10px 50px rgba(0,0,0,0.3);
-  animation:fadeUp 0.25s ease;
-  position:relative;
-}
-/* drag handle */
-.vcd-handle{
-  width:40px;height:4px;border-radius:4px;
-  background:rgba(0,0,0,0.12);
-  margin:0 auto 1.2rem;
-}
-.vcd-close{
-  position:absolute;top:14px;right:14px;
-  width:30px;height:30px;border-radius:50%;
-  background:var(--pk4);border:none;cursor:pointer;
-  color:var(--pk);font-size:13px;
-  display:flex;align-items:center;justify-content:center;
-}
-/* Static placeholder — NO <video> element here (avoids double-loading stutter) */
-.vcd-thumb-wrap{
-  width:100%;height:120px;
-  border-radius:14px;
-  background:linear-gradient(135deg,#2d0818,#1a0a12,#3a1525);
-  display:flex;align-items:center;justify-content:center;
-  flex-direction:column;gap:8px;
-  margin-bottom:1.1rem;
-  position:relative;
-  overflow:hidden;
-}
-.vcd-play-circle{
-  width:52px;height:52px;border-radius:50%;
-  background:rgba(232,24,109,0.9);
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 18px rgba(232,24,109,0.45);
-}
-.vcd-play-tri{
-  width:0;height:0;
-  border-top:11px solid transparent;
-  border-bottom:11px solid transparent;
-  border-left:19px solid #fff;
-  margin-left:4px;
-}
+/* ── VIDEO CHOICE DIALOG (bottom sheet) ── */
+.vcd-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:800;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.18s ease}
+.vcd-box{background:#fff;border-radius:22px 22px 0 0;padding:1.6rem 1.6rem 2rem;width:100%;max-width:480px;box-shadow:0 -10px 50px rgba(0,0,0,0.3);animation:fadeUp 0.25s ease;position:relative}
+.vcd-handle{width:40px;height:4px;border-radius:4px;background:rgba(0,0,0,0.12);margin:0 auto 1.2rem}
+.vcd-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:var(--pk4);border:none;cursor:pointer;color:var(--pk);font-size:13px;display:flex;align-items:center;justify-content:center}
+.vcd-thumb-wrap{width:100%;height:120px;border-radius:14px;background:linear-gradient(135deg,#2d0818,#1a0a12,#3a1525);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;margin-bottom:1.1rem;position:relative;overflow:hidden}
+.vcd-play-circle{width:52px;height:52px;border-radius:50%;background:rgba(232,24,109,0.9);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(232,24,109,0.45)}
+.vcd-play-tri{width:0;height:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:19px solid #fff;margin-left:4px}
 .vcd-label{font-size:0.7rem;color:rgba(255,255,255,0.6);font-weight:600;letter-spacing:0.8px;text-transform:uppercase}
-.vcd-title{
-  font-family:'Cormorant Garamond',serif;
-  font-size:1.15rem;font-weight:700;color:var(--txt);
-  margin-bottom:3px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
+.vcd-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:700;color:var(--txt);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vcd-subtitle{font-size:0.78rem;color:var(--txt3);margin-bottom:1.1rem}
 .vcd-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.vcd-btn{
-  padding:14px 8px;border-radius:14px;border:none;cursor:pointer;
-  font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:700;
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  min-height:76px;touch-action:manipulation;
-}
+.vcd-btn{padding:14px 8px;border-radius:14px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:76px;touch-action:manipulation}
 .vcd-btn-icon{font-size:1.5rem}
 .vcd-btn.preview{background:var(--pk4);border:1.5px solid var(--pk3);color:var(--pk2)}
 .vcd-btn.preview:active{background:var(--pk3)}
 .vcd-btn.fullscreen{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff;box-shadow:0 4px 14px rgba(232,24,109,0.3)}
 .vcd-btn.fullscreen:active{opacity:0.85}
 
-/* ══════════════════════════════════════════════════════
-   VIDEO PREVIEW MODAL — full screen on mobile
-   ══════════════════════════════════════════════════════ */
+/* ── VIDEO PREVIEW MODAL ── */
 .vpm-overlay{
-  position:fixed;inset:0;
-  background:#000;
-  z-index:900;
+  position:fixed;inset:0;background:#000;z-index:900;
   display:flex;align-items:center;justify-content:center;
   animation:fadeIn 0.15s ease;
-  /* iPhone notch safe areas */
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
-.vpm-box{
-  position:relative;width:100%;max-width:880px;
-  background:#000;
-}
+.vpm-box{position:relative;width:100%;max-width:880px;background:#000}
 .vpm-close{
   position:absolute;top:12px;right:12px;z-index:10;
   width:44px;height:44px;border-radius:50%;
-  background:rgba(0,0,0,0.75);
-  border:1.5px solid rgba(255,255,255,0.3);
+  background:rgba(0,0,0,0.75);border:1.5px solid rgba(255,255,255,0.3);
   color:#fff;font-size:18px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   touch-action:manipulation;
 }
 .vpm-close:active{background:var(--pk)}
-/*
-  CRITICAL MOBILE VIDEO FIX:
-  width:100vw + max-height:100vh ensures the video fills the screen
-  object-fit:contain shows full video without cropping
-  display:block removes the extra 4px gap browsers add under inline elements
-*/
 .vpm-video{
-  width:100%;max-height:100vh;
-  display:block;object-fit:contain;
-  background:#000;outline:none;
-  transition:opacity 0.2s ease;
+  width:100%;
+  /* FIX 1: Use 85vh not 100vh — leaves room for iOS chrome/address bar */
+  max-height:85vh;
+  display:block;object-fit:contain;background:#000;outline:none;
+  /* FIX 2: Fade in only after ready — hides black flash during buffering */
+  opacity:0;transition:opacity 0.25s ease;
 }
-.vpm-video.loading{opacity:0}
 .vpm-video.ready{opacity:1}
+/* FIX 3: Buffering progress bar — shows user something is happening */
+.vpm-buffer-bar{
+  position:absolute;bottom:0;left:0;right:0;
+  height:3px;background:rgba(255,255,255,0.1);overflow:hidden;
+}
+.vpm-buffer-bar.hidden{display:none}
+.vpm-buffer-fill{
+  height:100%;width:25%;
+  background:var(--pk);
+  animation:buffering 1.2s ease-in-out infinite;
+}
 .vpm-loading{
   position:absolute;inset:0;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:14px;background:#000;
-  transition:opacity 0.2s ease;
-  pointer-events:none;
+  transition:opacity 0.25s ease;pointer-events:none;
 }
-.vpm-loading.hidden{opacity:0}
-.vpm-spinner{
-  width:44px;height:44px;
-  border:3px solid rgba(255,255,255,0.1);
-  border-top-color:var(--pk);
-  border-radius:50%;animation:spin 0.8s linear infinite;
-}
-.vpm-load-text{font-size:0.82rem;color:rgba(255,255,255,0.45);font-family:'DM Sans',sans-serif}
-.vpm-title{
-  position:absolute;bottom:0;left:0;right:0;
-  padding:16px 16px 14px;
-  background:linear-gradient(to top,rgba(0,0,0,0.85),transparent);
-  color:#fff;font-family:'Cormorant Garamond',serif;
-  font-size:1.1rem;font-weight:600;pointer-events:none;
+.vpm-loading.hidden{opacity:0;pointer-events:none}
+.vpm-spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--pk);border-radius:50%;animation:spin 0.8s linear infinite}
+.vpm-load-text{font-size:0.82rem;color:rgba(255,255,255,0.45);font-family:'DM Sans',sans-serif;text-align:center;padding:0 1rem}
+.vpm-title{position:absolute;bottom:0;left:0;right:0;padding:16px 16px 14px;background:linear-gradient(to top,rgba(0,0,0,0.85),transparent);color:#fff;font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;pointer-events:none}
+/* ── Retry button shown on error ── */
+.vpm-retry{
+  padding:10px 24px;border-radius:var(--r3);
+  background:var(--pk);color:#fff;border:none;
+  font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:700;
+  cursor:pointer;margin-top:8px;touch-action:manipulation;
 }
 
 /* ── GENERAL MODAL ── */
@@ -403,7 +328,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .hr{border:none;border-top:1px solid var(--pk3);margin:1.2rem 0}
 .slink{text-align:center;font-size:0.83rem;color:var(--txt3)}
 .slink a{color:var(--pk);cursor:pointer;font-weight:700;text-decoration:none}
-
 .adm{max-width:1200px;margin:0 auto;padding:2rem}
 .adm-hdr{background:linear-gradient(135deg,#1a0a12,#3d0020);border-radius:var(--r);padding:1.8rem 2rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;box-shadow:var(--sh2)}
 .adm-hdr h2{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:700;color:#fff;margin-bottom:3px}
@@ -453,7 +377,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .flink:hover{color:var(--pk3)}
 .loading-overlay{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:1rem}
 .spinner{width:38px;height:38px;border:3px solid var(--pk3);border-top-color:var(--pk);border-radius:50%;animation:spin 0.7s linear infinite}
-
 @media(max-width:1200px){.tcard{flex:1 1 220px;max-width:280px}}
 @media(max-width:768px){.tcard{flex:1 1 calc(50% - 0.75rem);max-width:calc(50% - 0.75rem)}}
 @media(max-width:480px){.tcard{flex:1 1 100%;max-width:100%}}
@@ -484,7 +407,6 @@ const IgIcon = () => (
   </svg>
 );
 
-// ─── TOAST HOOK ───────────────────────────────────────────────────────────────
 function useToast() {
   const [toasts, setToasts] = useState([]);
   const push = useCallback((msg) => {
@@ -496,53 +418,33 @@ function useToast() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  VIDEO CHOICE DIALOG  (Bottom Sheet on mobile)
-//  KEY FIX: Does NOT contain a <video> element.
-//  Reason: Having a muted <video> thumbnail AND the modal <video> both loading
-//  at the same time causes bandwidth contention + stutter on mobile networks.
-//  We show a simple animated placeholder instead.
+//  VIDEO CHOICE DIALOG
 // ═══════════════════════════════════════════════════════════════════════════════
 function VideoChoiceDialog({ title, onClose, onPreview, onFullPreview }) {
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
   }, []);
 
   return (
-    <div
-      className="vcd-overlay"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
+    <div className="vcd-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="vcd-box">
         <div className="vcd-handle" />
-        <button className="vcd-close" onClick={onClose} aria-label="Close">✕</button>
-
-        {/* Static visual placeholder — no <video> to avoid double-load */}
+        <button className="vcd-close" onClick={onClose}>✕</button>
         <div className="vcd-thumb-wrap">
-          <div className="vcd-play-circle">
-            <div className="vcd-play-tri" />
-          </div>
+          <div className="vcd-play-circle"><div className="vcd-play-tri" /></div>
           <div className="vcd-label">Video Invitation</div>
         </div>
-
         <div className="vcd-title">{title}</div>
         <div className="vcd-subtitle">Choose how to watch this invitation</div>
-
         <div className="vcd-btns">
-          {/* Preview — opens our custom modal player */}
           <button className="vcd-btn preview" onClick={onPreview}>
-            <span className="vcd-btn-icon">📱</span>
-            Preview
+            <span className="vcd-btn-icon">📱</span>Preview
           </button>
-          {/* Full Screen — uses webkitEnterFullscreen on iOS */}
           <button className="vcd-btn fullscreen" onClick={onFullPreview}>
-            <span className="vcd-btn-icon">⛶</span>
-            Full Screen
+            <span className="vcd-btn-icon">⛶</span>Full Screen
           </button>
         </div>
       </div>
@@ -551,112 +453,154 @@ function VideoChoiceDialog({ title, onClose, onPreview, onFullPreview }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  VIDEO PREVIEW MODAL
-//
-//  Mobile fixes applied:
-//  1. preload="auto" — start buffering immediately on open
-//  2. playsInline — CRITICAL: prevents iOS from auto-fullscreening the video
-//  3. No autoplay attribute — instead call .play() inside onCanPlay
-//     (autoplay attr is blocked on mobile without muted; calling play() in a
-//      user-gesture chain works because the modal was opened by a tap)
-//  4. webkitEnterFullscreen — correct iOS Safari fullscreen API
-//  5. vid.src = "" on close — releases the media resource immediately
-//     (prevents ghost audio on Android after close)
-//  6. document.body.style.overflow = hidden — prevent scroll behind modal
-//  7. No backdrop-filter blur anywhere — causes GPU stutter on mid-range phones
+//  VIDEO PREVIEW MODAL — all mobile video sticking fixes applied here
 // ═══════════════════════════════════════════════════════════════════════════════
 function VideoPreviewModal({ url, title, onClose, autoFullscreen = false }) {
-  const videoRef          = useRef(null);
-  const [ready, setReady] = useState(false);
+  const videoRef             = useRef(null);
+  const [status, setStatus]  = useState("loading"); // "loading" | "ready" | "error"
+  const hasTriedPlay         = useRef(false);
+  const fullscreenDone       = useRef(false);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") handleClose(); };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
   }, []);
 
-  const handleCanPlay = () => {
-    setReady(true);
+  // ─── FIX 1: Use preload="none" on mobile, "metadata" on desktop ──────────────
+  // preload="auto" on mobile tries to download the whole file before playing,
+  // which is the primary cause of the "stuck/frozen" behavior on slow connections.
+  // "none" means the browser only loads when .play() is called — much faster start.
+  const preloadValue = isMobile() ? "none" : "metadata";
+
+  // ─── FIX 2: Use onCanPlay, but gate play() behind readyState >= 3 ─────────────
+  // readyState 1 = metadata, 2 = current frame, 3 = can play a few frames,
+  // 4 = can play all the way through.
+  // On mobile, onCanPlay fires at readyState 2 which is too early — causes stutter.
+  // We wait for readyState >= 3 (HAVE_FUTURE_DATA) before attempting play.
+  const tryPlay = () => {
     const vid = videoRef.current;
-    if (!vid) return;
+    if (!vid || hasTriedPlay.current) return;
+    if (vid.readyState < 3) return; // Not enough buffered yet — wait for next event
+    hasTriedPlay.current = true;
+    setStatus("ready");
 
-    // Play — works because we are inside a user-gesture chain (modal opened by tap)
-    vid.play().catch(() => {
-      // Autoplay blocked — user can tap the native controls play button
-    });
-
-    // If "Full Screen" was selected, enter fullscreen once playable
-    if (autoFullscreen) {
-      // iOS Safari: webkitEnterFullscreen on the video element
-      if (vid.webkitEnterFullscreen) {
-        vid.webkitEnterFullscreen();
-      } else if (vid.requestFullscreen) {
-        vid.requestFullscreen().catch(() => {});
-      } else if (vid.webkitRequestFullscreen) {
-        vid.webkitRequestFullscreen();
+    vid.play().then(() => {
+      // ─── FIX 3: Enter fullscreen AFTER play() promise resolves ───────────────
+      // iOS requires the video to be actively playing before webkitEnterFullscreen
+      // works. Calling it in onCanPlay (before play resolves) silently fails.
+      if (autoFullscreen && !fullscreenDone.current) {
+        fullscreenDone.current = true;
+        // Small delay to let iOS register the playing state
+        setTimeout(() => {
+          const v = videoRef.current;
+          if (!v) return;
+          if (v.webkitEnterFullscreen)        v.webkitEnterFullscreen();
+          else if (v.requestFullscreen)        v.requestFullscreen().catch(() => {});
+          else if (v.webkitRequestFullscreen)  v.webkitRequestFullscreen();
+        }, 120);
       }
-    }
+    }).catch(() => {
+      // Autoplay blocked — video is still visible with native controls,
+      // user can tap the play button themselves
+    });
   };
 
-  const handleFullscreen = () => {
-    const vid = videoRef.current;
-    if (!vid) return;
-    if      (vid.webkitEnterFullscreen)      vid.webkitEnterFullscreen();      // iOS
-    else if (vid.requestFullscreen)          vid.requestFullscreen().catch(()=>{});
-    else if (vid.webkitRequestFullscreen)    vid.webkitRequestFullscreen();
-    else if (vid.mozRequestFullScreen)       vid.mozRequestFullScreen();
+  // ─── FIX 4: Listen to multiple events, not just onCanPlay ────────────────────
+  // On different Android browsers, the reliable event varies:
+  // - Chrome Android: onCanPlay fires reliably
+  // - Samsung Internet: onLoadedData is more reliable
+  // - WeChat/WebView: onProgress + checking readyState is most reliable
+  // By checking readyState in all three handlers we cover all cases.
+  const handleCanPlay       = tryPlay;
+  const handleLoadedData    = tryPlay;
+  const handleProgress      = tryPlay;
+
+  const handleError = () => {
+    setStatus("error");
   };
 
   const handleClose = () => {
     const vid = videoRef.current;
     if (vid) {
       vid.pause();
-      vid.src = ""; // CRITICAL: releases media resource, stops audio on Android
+      // ─── FIX 5: Release media resource on close ───────────────────────────
+      // Without this, Android keeps the media pipeline open and you can hear
+      // audio after the modal closes. Setting src="" forces full release.
+      vid.src = "";
+      vid.load(); // resets the media element completely
     }
     onClose();
   };
 
-  return (
-    <div
-      className="vpm-overlay"
-      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
-    >
-      <div className="vpm-box">
-        {/* Close button */}
-        <button className="vpm-close" onClick={handleClose} aria-label="Close">✕</button>
+  const handleRetry = () => {
+    setStatus("loading");
+    hasTriedPlay.current = false;
+    fullscreenDone.current = false;
+    const vid = videoRef.current;
+    if (vid) {
+      vid.load(); // re-fetches from network
+    }
+  };
 
-        {/* Spinner shown while buffering */}
-        <div className={`vpm-loading${ready ? " hidden" : ""}`}>
+  return (
+    <div className="vpm-overlay" onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}>
+      <div className="vpm-box">
+        <button className="vpm-close" onClick={handleClose}>✕</button>
+
+        {/* Loading state */}
+        <div className={`vpm-loading${status !== "loading" ? " hidden" : ""}`}>
           <div className="vpm-spinner" />
-          <div className="vpm-load-text">Loading video…</div>
+          <div className="vpm-load-text">
+            {isMobile() ? "Loading video…\nThis may take a moment on mobile" : "Loading video…"}
+          </div>
         </div>
 
+        {/* Error state */}
+        {status === "error" && (
+          <div className="vpm-loading">
+            <div style={{ fontSize: "2rem" }}>⚠️</div>
+            <div className="vpm-load-text">Couldn't load this video.</div>
+            <button className="vpm-retry" onClick={handleRetry}>Try Again</button>
+            <button className="vpm-retry" style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.3)", marginTop: 4 }}
+              onClick={() => window.open(url, "_blank", "noopener,noreferrer")}>
+              Open in Browser
+            </button>
+          </div>
+        )}
+
         {/*
-          THE VIDEO ELEMENT:
-          - playsInline: must be present to prevent iOS auto-fullscreen
-          - preload="auto": buffer immediately
+          THE VIDEO ELEMENT — mobile fixes:
+          - preload="none" on mobile: don't buffer the whole file before play
+          - playsInline: CRITICAL — without this iOS auto-fullscreens the video
+            in an inline element, causing the "stuck" effect
           - controls: always visible so user can play manually if autoplay fails
-          - No "autoplay" attr: we call .play() in onCanPlay instead
-          - x5-playsinline / webkit-playsinline: WeChat/old Android compat
+          - NO autoplay attribute — we call .play() in tryPlay() instead
+            (autoplay attr requires muted on mobile and causes unpredictable behavior)
+          - x5-playsinline + webkit-playsinline: WeChat/old Android compatibility
         */}
         <video
           ref={videoRef}
-          className={`vpm-video${ready ? " ready" : " loading"}`}
+          className={`vpm-video${status === "ready" ? " ready" : ""}`}
           src={url}
           controls
           playsInline
-          preload="auto"
+          preload={preloadValue}
           onCanPlay={handleCanPlay}
-          onError={() => setReady(true)}
+          onLoadedData={handleLoadedData}
+          onProgress={handleProgress}
+          onError={handleError}
           x5-playsinline="true"
           webkit-playsinline="true"
         />
 
-        {title && <div className="vpm-title">▶ {title}</div>}
+        {/* Animated buffering bar shown while loading */}
+        <div className={`vpm-buffer-bar${status !== "loading" ? " hidden" : ""}`}>
+          <div className="vpm-buffer-fill" />
+        </div>
+
+        {title && status === "ready" && <div className="vpm-title">▶ {title}</div>}
       </div>
     </div>
   );
@@ -664,25 +608,13 @@ function VideoPreviewModal({ url, title, onClose, autoFullscreen = false }) {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  TEMPLATE CARD
-//
-//  Mobile video thumbnail fix:
-//  On MOBILE — show a pink gradient + play icon (NO <video> element in card)
-//    Why: loading <video> metadata on every visible card simultaneously on
-//    mobile causes network congestion, black frames, and scroll jank.
-//  On DESKTOP — use muted <video> thumbnail (works great, no issues)
-//
-//  Full Preview on mobile:
-//  Opens VideoPreviewModal with autoFullscreen=true
-//  which calls webkitEnterFullscreen inside onCanPlay
-//  (must be triggered from within the same user-gesture chain as the tap)
 // ═══════════════════════════════════════════════════════════════════════════════
 function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }) {
-  const [videoMode, setVideoMode] = useState(null); // null | "choice" | "preview" | "fullscreen"
+  const [videoMode, setVideoMode] = useState(null);
   const mobile = isMobile();
   const waMsg  = encodeURIComponent(`Hi, I'm interested in this invitation template: ${tpl.title}`);
   const isVid  = isVideoUrl(tpl.image);
 
-  // Desktop-only full preview with floating video + requestFullscreen
   const handleDesktopFullPreview = () => {
     setVideoMode(null);
     const vid         = document.createElement("video");
@@ -693,7 +625,7 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
     vid.style.cssText = "position:fixed;inset:0;width:100%;height:100%;background:#000;z-index:9999;outline:none;";
     document.body.appendChild(vid);
     const cleanup = () => {
-      vid.pause(); vid.src = "";
+      vid.pause(); vid.src = ""; vid.load();
       if (document.body.contains(vid)) document.body.removeChild(vid);
       document.removeEventListener("fullscreenchange", onFs);
     };
@@ -710,7 +642,6 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
 
   const handleFullPreview = () => {
     if (mobile) {
-      // Open modal with autoFullscreen flag — it will call webkitEnterFullscreen in onCanPlay
       setVideoMode("fullscreen");
     } else {
       handleDesktopFullPreview();
@@ -719,11 +650,7 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
 
   return (
     <>
-      <div
-        className="tcard"
-        style={{ animationDelay: `${delay}ms`, opacity: !tpl.is_active && isAdmin ? 0.58 : 1 }}
-      >
-        {/* ── Thumbnail area ───────────────────────────────────────────── */}
+      <div className="tcard" style={{ animationDelay: `${delay}ms`, opacity: !tpl.is_active && isAdmin ? 0.58 : 1 }}>
         <div
           className="tcard-img-wrap"
           onClick={() => isVid && setVideoMode("choice")}
@@ -732,37 +659,33 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
           {isVid ? (
             <>
               {mobile ? (
-                /*
-                  MOBILE: Gradient placeholder with centered play button.
-                  No <video> element — avoids all the mobile thumbnail issues.
-                */
+                // Mobile: gradient placeholder — no <video> in the card
                 <div style={{
-                  width:"100%",height:"100%",
-                  background:"linear-gradient(135deg,#2a0610 0%,#1a0a12 45%,#38101e 100%)",
-                  display:"flex",alignItems:"center",justifyContent:"center",
-                  flexDirection:"column",gap:"12px",
+                  width: "100%", height: "100%",
+                  background: "linear-gradient(135deg,#2a0610 0%,#1a0a12 45%,#38101e 100%)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  flexDirection: "column", gap: "12px",
                 }}>
                   <div style={{
-                    width:64,height:64,borderRadius:"50%",
-                    background:"rgba(232,24,109,0.88)",
-                    display:"flex",alignItems:"center",justifyContent:"center",
-                    boxShadow:"0 6px 24px rgba(232,24,109,0.5)",
+                    width: 64, height: 64, borderRadius: "50%",
+                    background: "rgba(232,24,109,0.88)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: "0 6px 24px rgba(232,24,109,0.5)",
                   }}>
                     <div style={{
-                      width:0,height:0,
-                      borderTop:"13px solid transparent",
-                      borderBottom:"13px solid transparent",
-                      borderLeft:"22px solid #fff",
-                      marginLeft:"5px",
+                      width: 0, height: 0,
+                      borderTop: "13px solid transparent",
+                      borderBottom: "13px solid transparent",
+                      borderLeft: "22px solid #fff",
+                      marginLeft: "5px",
                     }} />
                   </div>
-                  <div style={{
-                    fontSize:"0.7rem",color:"rgba(255,255,255,0.65)",
-                    fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",
-                  }}>Tap to Play</div>
+                  <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.65)", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase" }}>
+                    Tap to Play
+                  </div>
                 </div>
               ) : (
-                /* DESKTOP: Proper muted video thumbnail */
+                // Desktop: muted video thumbnail
                 <video
                   className="tcard-vid-thumb"
                   src={tpl.image}
@@ -772,7 +695,6 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
                   onLoadedMetadata={(e) => { try { e.target.currentTime = 0.1; } catch {} }}
                 />
               )}
-
               <div className="tcard-ov" />
               {!mobile && (
                 <div className="play-overlay">
@@ -792,28 +714,21 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
               <div className="tcard-ov" />
             </>
           )}
-
           <span className="cat-badge">
-            {tpl.category === "wedding" ? "💍 Wedding"
-              : tpl.category === "housewarming" ? "🏡 Housewarming"
-              : "🎂 Birthday"}
+            {tpl.category === "wedding" ? "💍 Wedding" : tpl.category === "housewarming" ? "🏡 Housewarming" : "🎂 Birthday"}
           </span>
-
           {isAdmin && (
             <div className="adm-ctrl">
               <button className="acb" title={tpl.is_active ? "Deactivate" : "Activate"}
                 onClick={(e) => { e.stopPropagation(); onToggle(tpl.id, tpl.is_active); }}>
                 {tpl.is_active ? "👁️" : "🙈"}
               </button>
-              <button className="acb" title="Edit"
-                onClick={(e) => { e.stopPropagation(); onEdit(tpl); }}>✏️</button>
-              <button className="acb" title="Delete"
-                onClick={(e) => { e.stopPropagation(); onDelete(tpl.id); }}>🗑️</button>
+              <button className="acb" title="Edit" onClick={(e) => { e.stopPropagation(); onEdit(tpl); }}>✏️</button>
+              <button className="acb" title="Delete" onClick={(e) => { e.stopPropagation(); onDelete(tpl.id); }}>🗑️</button>
             </div>
           )}
         </div>
 
-        {/* ── Card body ────────────────────────────────────────────────── */}
         <div className="tcard-body">
           <div className="tcard-title">{tpl.title}</div>
           <div className="tcard-price">₹{tpl.price.toLocaleString()} <sub>/ design</sub></div>
@@ -831,7 +746,6 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
         </div>
       </div>
 
-      {/* Choice dialog (bottom sheet) */}
       {videoMode === "choice" && (
         <VideoChoiceDialog
           title={tpl.title}
@@ -841,7 +755,6 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
         />
       )}
 
-      {/* Preview modal */}
       {(videoMode === "preview" || videoMode === "fullscreen") && (
         <VideoPreviewModal
           url={tpl.image}
@@ -875,8 +788,7 @@ function LoginModal({ onClose, onLogin }) {
       const s = { email: _A.e, role: "admin", name: "Admin", at: Date.now() };
       session.set(s); onLogin(s); setLoading(false);
     } else {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
-        return setErr("Please enter a valid email.");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setErr("Please enter a valid email.");
       setLoading(true);
       try {
         const lower = email.trim().toLowerCase();
@@ -974,8 +886,7 @@ function TplForm({ tpl, onClose, onSave }) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
           <div className="fg" style={{ gridColumn: "1/-1" }}>
             <label className="flabel">Title *</label>
-            <input className="fi" placeholder="e.g. Royal Lotus Wedding" value={f.title}
-              onChange={(e) => set("title", e.target.value)} />
+            <input className="fi" placeholder="e.g. Royal Lotus Wedding" value={f.title} onChange={(e) => set("title", e.target.value)} />
           </div>
           <div className="fg">
             <label className="flabel">Category *</label>
@@ -987,8 +898,7 @@ function TplForm({ tpl, onClose, onSave }) {
           </div>
           <div className="fg">
             <label className="flabel">Price (₹) *</label>
-            <input className="fi" type="number" placeholder="999" value={f.price} min="1"
-              onChange={(e) => set("price", e.target.value)} />
+            <input className="fi" type="number" placeholder="999" value={f.price} min="1" onChange={(e) => set("price", e.target.value)} />
           </div>
           <div className="fg" style={{ gridColumn: "1/-1" }}>
             <label className="flabel">Image / Video *</label>
@@ -1010,8 +920,7 @@ function TplForm({ tpl, onClose, onSave }) {
             </div>
           )}
           <div className="fg" style={{ gridColumn: "1/-1", display: "flex", alignItems: "center", gap: 10 }}>
-            <input type="checkbox" id="act" checked={f.is_active}
-              onChange={(e) => set("is_active", e.target.checked)}
+            <input type="checkbox" id="act" checked={f.is_active} onChange={(e) => set("is_active", e.target.checked)}
               style={{ accentColor: "var(--pk)", width: 16, height: 16, cursor: "pointer" }} />
             <label htmlFor="act" style={{ fontSize: "0.88rem", color: "var(--txt2)", cursor: "pointer", fontWeight: 500 }}>
               Active — visible to all users
@@ -1062,9 +971,9 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
       </div>
 
       <div className="stats-row">
-        {[["Total",total,"var(--pk)"],["Active",active,"#27ae60"],["Hidden",total-active,"var(--pk)"],
-          ["Wedding",bycat("wedding"),"var(--pk)"],["Housewarming",bycat("housewarming"),"var(--pk)"],
-          ["Birthday",bycat("birthday"),"var(--pk)"],["Users",users.length,"var(--pk)"]
+        {[["Total", total, "var(--pk)"], ["Active", active, "#27ae60"], ["Hidden", total - active, "var(--pk)"],
+          ["Wedding", bycat("wedding"), "var(--pk)"], ["Housewarming", bycat("housewarming"), "var(--pk)"],
+          ["Birthday", bycat("birthday"), "var(--pk)"], ["Users", users.length, "var(--pk)"]
         ].map(([label, val, color]) => (
           <div key={label} className="scard"><div className="n" style={{ color }}>{val}</div><div className="l">{label}</div></div>
         ))}
@@ -1081,33 +990,26 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
             <thead><tr><th>Preview</th><th>Title</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
               {templates.length === 0 && (
-                <tr><td colSpan={6} style={{ textAlign:"center",padding:"2.5rem",color:"var(--txt3)" }}>No templates yet.</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: "center", padding: "2.5rem", color: "var(--txt3)" }}>No templates yet.</td></tr>
               )}
               {templates.map((t) => (
                 <tr key={t.id}>
                   <td>
-                    {/* Admin table uses div placeholder for video — no extra network load */}
                     {isVideoUrl(t.image) ? (
-                      <div style={{
-                        width:52,height:38,borderRadius:8,
-                        background:"linear-gradient(135deg,#1a0a12,#3d1020)",
-                        border:"1px solid var(--pk3)",
-                        display:"flex",alignItems:"center",justifyContent:"center",
-                        color:"rgba(255,255,255,0.7)",fontSize:"1rem",
-                      }}>▶</div>
+                      <div style={{ width: 52, height: 38, borderRadius: 8, background: "linear-gradient(135deg,#1a0a12,#3d1020)", border: "1px solid var(--pk3)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.7)", fontSize: "1rem" }}>▶</div>
                     ) : (
                       <img className="thumb" src={t.image} alt={t.title}
-                        onError={(e)=>{e.target.src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=52&h=38&fit=crop";}} />
+                        onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=52&h=38&fit=crop"; }} />
                     )}
                   </td>
-                  <td style={{ fontWeight:600,maxWidth:170 }}>{t.title}</td>
-                  <td><span className={`bcat ${t.category==="wedding"?"bw":t.category==="housewarming"?"bh":"bb"}`}>{t.category}</span></td>
-                  <td style={{ color:"var(--pk)",fontWeight:700 }}>₹{t.price.toLocaleString()}</td>
-                  <td><button className="tog" onClick={()=>onToggle(t.id,t.is_active)}>{t.is_active?"✅":"❌"}</button></td>
+                  <td style={{ fontWeight: 600, maxWidth: 170 }}>{t.title}</td>
+                  <td><span className={`bcat ${t.category === "wedding" ? "bw" : t.category === "housewarming" ? "bh" : "bb"}`}>{t.category}</span></td>
+                  <td style={{ color: "var(--pk)", fontWeight: 700 }}>₹{t.price.toLocaleString()}</td>
+                  <td><button className="tog" onClick={() => onToggle(t.id, t.is_active)}>{t.is_active ? "✅" : "❌"}</button></td>
                   <td>
                     <div className="act-cell">
-                      <button className="icb" onClick={()=>{setEditTpl(t);setShowForm(true);}}>✏️</button>
-                      <button className="icb del" onClick={()=>onDelete(t.id)}>🗑️</button>
+                      <button className="icb" onClick={() => { setEditTpl(t); setShowForm(true); }}>✏️</button>
+                      <button className="icb del" onClick={() => onDelete(t.id)}>🗑️</button>
                     </div>
                   </td>
                 </tr>
@@ -1119,15 +1021,15 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
 
       {tab === "users" && (
         <div className="tbl-wrap">
-          <div style={{ padding:"13px 16px",borderBottom:"1px solid var(--pk4)",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-            <span style={{ fontSize:"0.85rem",fontWeight:700,color:"var(--txt2)" }}>Registered Users</span>
+          <div style={{ padding: "13px 16px", borderBottom: "1px solid var(--pk4)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--txt2)" }}>Registered Users</span>
             <span className="ucnt">{users.length} total</span>
           </div>
-          {users.length === 0 && <div style={{ padding:"2.5rem",textAlign:"center",color:"var(--txt3)" }}>No users yet.</div>}
+          {users.length === 0 && <div style={{ padding: "2.5rem", textAlign: "center", color: "var(--txt3)" }}>No users yet.</div>}
           {users.map((u, i) => (
             <div key={i} className="user-row">
               <div className="uavatar">{u.email.charAt(0).toUpperCase()}</div>
-              <div style={{ flex:1 }}>
+              <div style={{ flex: 1 }}>
                 <div className="uemail">{u.email}</div>
                 {u.joined_at && (
                   <div className="utime">
@@ -1141,7 +1043,7 @@ function AdminDash({ templates, onAdd, onEdit, onDelete, onToggle, onLogout }) {
         </div>
       )}
 
-      {showForm && <TplForm tpl={editTpl} onClose={()=>{setShowForm(false);setEditTpl(null);}} onSave={doSave} />}
+      {showForm && <TplForm tpl={editTpl} onClose={() => { setShowForm(false); setEditTpl(null); }} onSave={doSave} />}
     </div>
   );
 }
@@ -1157,8 +1059,8 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
     .filter((t) => cat === "all" || t.category === cat)
     .filter((t) => t.price <= maxPrice);
   const cats = [
-    { k:"all",l:"✨ All" }, { k:"wedding",l:"💍 Wedding" },
-    { k:"housewarming",l:"🏡 Housewarming" }, { k:"birthday",l:"🎂 Birthday" },
+    { k: "all", l: "✨ All" }, { k: "wedding", l: "💍 Wedding" },
+    { k: "housewarming", l: "🏡 Housewarming" }, { k: "birthday", l: "🎂 Birthday" },
   ];
 
   return (
@@ -1171,7 +1073,7 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
           {!sess ? (
             <button className="btn-hero primary" onClick={onLoginClick}>Browse Designs →</button>
           ) : (
-            <button className="btn-hero primary" onClick={() => document.getElementById("tgrid")?.scrollIntoView({ behavior:"smooth" })}>Explore Designs →</button>
+            <button className="btn-hero primary" onClick={() => document.getElementById("tgrid")?.scrollIntoView({ behavior: "smooth" })}>Explore Designs →</button>
           )}
           <a className="btn-hero secondary" href={`https://wa.me/${WA}`} target="_blank" rel="noreferrer">WhatsApp Us</a>
         </div>
@@ -1207,15 +1109,15 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
         {!sess ? (
           <div className="empty">
             <div className="empty-icon">🌸</div>
-            <p style={{ fontSize:"1.1rem",fontWeight:600,color:"var(--txt)",marginBottom:10 }}>Sign in to browse premium designs</p>
-            <p style={{ marginBottom:"1.8rem" }}>Create a free account — no OTP, instant access</p>
+            <p style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--txt)", marginBottom: 10 }}>Sign in to browse premium designs</p>
+            <p style={{ marginBottom: "1.8rem" }}>Create a free account — no OTP, instant access</p>
             <button className="btn-hero primary" onClick={onLoginClick}>Sign In — It's Free →</button>
           </div>
         ) : (
           <>
             <div className="sec-hdr">
               <h2 className="sec-title">
-                {cat === "all" ? "All Designs" : cats.find((c) => c.k === cat)?.l.replace(/^.+ /,"") + " Designs"}
+                {cat === "all" ? "All Designs" : cats.find((c) => c.k === cat)?.l.replace(/^.+ /, "") + " Designs"}
               </h2>
               <div className="sec-line" />
             </div>
@@ -1306,7 +1208,6 @@ export default function App() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-
       <header className="hdr">
         <div className="hdr-in">
           <div className="logo" onClick={() => setPage("home")}>
@@ -1334,7 +1235,7 @@ export default function App() {
       {loading ? (
         <div className="loading-overlay">
           <div className="spinner" />
-          <p style={{ color:"var(--txt3)",fontSize:"0.9rem" }}>Loading designs…</p>
+          <p style={{ color: "var(--txt3)", fontSize: "0.9rem" }}>Loading designs…</p>
         </div>
       ) : page === "admin" && isAdmin ? (
         <AdminDash templates={templates} onAdd={addT} onEdit={editT} onDelete={delT} onToggle={togT} onLogout={handleLogout} />
@@ -1353,7 +1254,7 @@ export default function App() {
           <a className="flink" href={`mailto:${MAIL}`}>Email Us</a>
           <a className="flink" href={IG} target="_blank" rel="noreferrer">Instagram</a>
         </div>
-        <div style={{ opacity:0.3,fontSize:"0.75rem" }}>© 2025 Chitrakala Invitations. All rights reserved.</div>
+        <div style={{ opacity: 0.3, fontSize: "0.75rem" }}>© 2025 Chitrakala Invitations. All rights reserved.</div>
       </footer>
 
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={handleLogin} />}
