@@ -22,6 +22,10 @@ const WA   = "919840903746";
 const MAIL = "priyasaki190@gmail.com";
 const IG   = "https://instagram.com/priyasaki__19";
 
+// ─── REPLACE THIS with a real video URL from your Supabase storage ────────────
+// It should be a short looping ambient video (e.g. one of your wedding invitation videos)
+const HERO_VIDEO_URL = "https://myenjbljtvlwptlxzlhh.supabase.co/storage/v1/object/public/templates-media/hero-bg.mp4";
+
 function isMobile() {
   return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
 }
@@ -130,7 +134,7 @@ async function fetchUsers() {
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 :root{
@@ -146,46 +150,67 @@ html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);overflow-x:hidden}
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-thumb{background:var(--pk3);border-radius:10px}
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 @keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes scrollPulse{0%,100%{opacity:0.3;transform:scaleY(0.8)}50%{opacity:1;transform:scaleY(1)}}
+@keyframes blink{0%,100%{opacity:0.4}50%{opacity:1}}
 
-.hdr{background:rgba(255,255,255,0.97);border-bottom:1px solid rgba(232,24,109,0.10);position:sticky;top:0;z-index:200;box-shadow:0 2px 18px rgba(232,24,109,0.06)}
+/* ── HEADER ── */
+.hdr{background:rgba(0,0,0,0.0);border-bottom:1px solid rgba(255,255,255,0.0);position:fixed;top:0;z-index:200;width:100%;transition:background 0.4s ease,border-color 0.4s ease,box-shadow 0.4s ease}
+.hdr.scrolled{background:rgba(255,255,255,0.97);border-bottom:1px solid rgba(232,24,109,0.10);box-shadow:0 2px 18px rgba(232,24,109,0.06)}
 .hdr-in{max-width:1280px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:68px}
 .logo{display:flex;align-items:center;gap:11px;cursor:pointer;text-decoration:none}
 .logo-mark{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--pk),var(--pk2));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(232,24,109,0.35);animation:float 3s ease-in-out infinite}
-.logo-text{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:700;color:var(--txt)}
-.logo-text span{color:var(--pk)}
+.logo-text{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:700;color:#fff;transition:color 0.4s ease}
+.logo-text span{color:var(--pk3)}
+.hdr.scrolled .logo-text{color:var(--txt)}
+.hdr.scrolled .logo-text span{color:var(--pk)}
 .nav-right{display:flex;align-items:center;gap:10px}
 .chip-user{background:linear-gradient(135deg,var(--pk4),var(--pk3));border:1px solid var(--pk3);color:var(--pk2);padding:6px 16px;border-radius:var(--r3);font-size:0.8rem;font-weight:600}
-.btn-nav{font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:600;padding:8px 18px;border-radius:var(--r3);cursor:pointer;border:1.5px solid rgba(232,24,109,0.22);background:transparent;color:var(--txt2);transition:var(--tr)}
-.btn-nav:hover{border-color:var(--pk);color:var(--pk);background:var(--pk4)}
+.btn-nav{font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:600;padding:8px 18px;border-radius:var(--r3);cursor:pointer;border:1.5px solid rgba(255,255,255,0.3);background:transparent;color:rgba(255,255,255,0.85);transition:var(--tr)}
+.btn-nav:hover{border-color:rgba(255,255,255,0.7);color:#fff;background:rgba(255,255,255,0.08)}
+.hdr.scrolled .btn-nav{border-color:rgba(232,24,109,0.22);color:var(--txt2)}
+.hdr.scrolled .btn-nav:hover{border-color:var(--pk);color:var(--pk);background:var(--pk4)}
 .btn-nav.solid{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff;border-color:transparent;box-shadow:0 4px 16px rgba(232,24,109,0.3)}
 .btn-nav.solid:hover{box-shadow:0 6px 24px rgba(232,24,109,0.45);transform:translateY(-1px)}
+.hdr.scrolled .btn-nav.solid{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff;border-color:transparent}
 .btn-nav.gold{background:linear-gradient(135deg,var(--gd),var(--gd2));color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(201,149,42,0.3)}
 .btn-nav.gold:hover{box-shadow:0 6px 22px rgba(201,149,42,0.45);transform:translateY(-1px)}
-.hero{background:linear-gradient(160deg,#fff7fb 0%,#fce8f3 40%,#fdf3dc 100%);padding:5.5rem 2rem 4.5rem;text-align:center;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:-60px;right:-80px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(232,24,109,0.07),transparent 70%);pointer-events:none}
-.hero::after{content:'';position:absolute;bottom:-40px;left:-60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(201,149,42,0.07),transparent 70%);pointer-events:none}
-.hero-tag{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--gd3),#fff);border:1px solid rgba(201,149,42,0.28);border-radius:var(--r3);padding:6px 18px;font-size:0.78rem;font-weight:600;color:var(--gd);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:1.5rem;animation:fadeUp 0.6s ease both}
-.hero-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,5.5vw,4rem);font-weight:700;line-height:1.15;color:var(--txt);margin-bottom:1.2rem;animation:fadeUp 0.6s 0.1s ease both}
-.hero-h1 em{color:var(--pk);font-style:italic}
-.gold-word{background:linear-gradient(135deg,var(--gd),var(--gd2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero-p{font-size:1.05rem;color:var(--txt3);max-width:520px;margin:0 auto 2.5rem;line-height:1.7;font-weight:300;animation:fadeUp 0.6s 0.2s ease both}
-.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;animation:fadeUp 0.6s 0.3s ease both;margin-bottom:3rem}
-.btn-hero{padding:13px 32px;border-radius:var(--r3);font-size:0.95rem;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:var(--tr)}
-.btn-hero.primary{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff;box-shadow:0 6px 24px rgba(232,24,109,0.35)}
-.btn-hero.primary:hover{box-shadow:0 10px 36px rgba(232,24,109,0.5);transform:translateY(-2px)}
-.btn-hero.secondary{background:#fff;color:var(--pk);border:2px solid var(--pk3);box-shadow:var(--sh1);text-decoration:none;display:inline-flex;align-items:center}
-.btn-hero.secondary:hover{border-color:var(--pk);background:var(--pk4);transform:translateY(-2px)}
-.hero-stats{display:flex;justify-content:center;gap:2.5rem;flex-wrap:wrap;animation:fadeUp 0.6s 0.4s ease both}
-.hstat{text-align:center}
-.hstat-n{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--pk);line-height:1}
-.hstat-l{font-size:0.73rem;text-transform:uppercase;letter-spacing:1px;color:var(--txt3);margin-top:3px}
-.sep{width:1px;background:linear-gradient(to bottom,transparent,var(--pk3),transparent);align-self:stretch}
+
+/* ── CINEMATIC HERO ── */
+.hero{position:relative;width:100%;min-height:100svh;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center}
+.hero-vbg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.42;pointer-events:none;z-index:0}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(160deg,rgba(0,0,0,0.78) 0%,rgba(10,0,8,0.55) 50%,rgba(26,0,14,0.88) 100%);z-index:1}
+.hero-overlay2{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(232,24,109,0.08) 0%,transparent 60%);z-index:2}
+.hero-noise{position:absolute;inset:0;z-index:3;opacity:0.04;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px;pointer-events:none}
+.hero-inner{position:relative;z-index:10;text-align:center;padding:6rem 2rem 5rem;width:100%;max-width:720px;margin:0 auto}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(201,149,42,0.35);border-radius:40px;padding:7px 22px;font-size:0.72rem;font-weight:500;color:rgba(201,149,42,0.92);letter-spacing:2px;text-transform:uppercase;margin-bottom:2rem;background:rgba(201,149,42,0.06);backdrop-filter:blur(10px);animation:fadeUp 0.7s ease both}
+.hero-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.6rem,6.5vw,4.4rem);font-weight:300;line-height:1.1;color:rgba(255,255,255,0.95);margin-bottom:0.25rem;letter-spacing:-0.5px;animation:fadeUp 0.7s 0.1s ease both}
+.hero-h1 em{font-style:italic;font-weight:600;color:#f9c6dd}
+.hero-h1-gold{font-family:'Cormorant Garamond',serif;font-size:clamp(2.6rem,6.5vw,4.4rem);font-weight:300;color:transparent;background:linear-gradient(135deg,#c9952a,#e8b84b,#f0c96a,#c9952a);-webkit-background-clip:text;background-clip:text;display:block;margin-bottom:1.6rem;animation:fadeUp 0.7s 0.15s ease both}
+.hero-p{font-size:1.02rem;color:rgba(255,255,255,0.48);max-width:460px;margin:0 auto 2.4rem;line-height:1.78;font-weight:300;animation:fadeUp 0.7s 0.25s ease both;letter-spacing:0.15px}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeUp 0.7s 0.35s ease both;margin-bottom:3rem}
+.btn-hero{padding:14px 36px;border-radius:var(--r3);font-size:0.92rem;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:var(--tr);text-decoration:none;display:inline-flex;align-items:center;letter-spacing:0.2px}
+.btn-hero.primary{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff;box-shadow:0 6px 28px rgba(232,24,109,0.4)}
+.btn-hero.primary:hover{box-shadow:0 10px 38px rgba(232,24,109,0.58);transform:translateY(-2px)}
+.btn-hero.secondary{background:transparent;color:rgba(255,255,255,0.72);border:1px solid rgba(255,255,255,0.22);backdrop-filter:blur(10px)}
+.btn-hero.secondary:hover{border-color:rgba(255,255,255,0.5);color:#fff;background:rgba(255,255,255,0.07);transform:translateY(-2px)}
+.hero-stats{display:flex;justify-content:center;animation:fadeUp 0.7s 0.45s ease both;border-top:1px solid rgba(255,255,255,0.08);padding-top:1.8rem;flex-wrap:wrap;gap:0}
+.hstat{text-align:center;padding:0 2.2rem}
+.hstat-n{font-family:'Cormorant Garamond',serif;font-size:2.1rem;font-weight:600;color:#e8b84b;line-height:1}
+.hstat-l{font-size:0.66rem;text-transform:uppercase;letter-spacing:1.8px;color:rgba(255,255,255,0.32);margin-top:5px}
+.sep{width:1px;background:rgba(255,255,255,0.1);align-self:stretch;margin:2px 0}
+.hero-scroll{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;gap:7px;color:rgba(255,255,255,0.22);font-size:0.62rem;letter-spacing:2.5px;text-transform:uppercase;font-family:'DM Sans',sans-serif;pointer-events:none}
+.hero-scroll-line{width:1px;height:30px;background:linear-gradient(to bottom,rgba(232,24,109,0.6),transparent);animation:scrollPulse 2.2s ease-in-out infinite}
+.hero-vid-badge{position:absolute;bottom:28px;right:28px;z-index:10;display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.28);font-size:0.65rem;letter-spacing:1.5px;font-family:'DM Sans',sans-serif}
+.hero-vid-dot{width:5px;height:5px;border-radius:50%;background:var(--pk);animation:blink 2.2s ease-in-out infinite}
+
+/* ── FILTER BAR ── */
 .fbar{background:rgba(255,255,255,0.97);border-bottom:1px solid rgba(232,24,109,0.07);position:sticky;top:68px;z-index:190;box-shadow:0 2px 12px rgba(232,24,109,0.03);padding:0.9rem 2rem}
 .fbar-in{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .fchip{padding:7px 20px;border-radius:var(--r3);font-size:0.83rem;font-weight:500;border:1.5px solid rgba(232,24,109,0.16);background:transparent;color:var(--txt2);cursor:pointer;transition:var(--tr);font-family:'DM Sans',sans-serif;white-space:nowrap}
@@ -196,21 +221,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .fprice input[type=range]{accent-color:var(--pk);width:110px;cursor:pointer}
 .fpval{font-size:0.82rem;font-weight:700;color:var(--pk);min-width:60px}
 .fcnt{font-size:0.78rem;color:var(--txt3);background:var(--pk4);padding:4px 12px;border-radius:var(--r3);font-weight:500;white-space:nowrap}
+
+/* ── MAIN CONTENT ── */
 .main{max-width:1280px;margin:0 auto;padding:2.5rem 2rem 4rem}
 .sec-hdr{display:flex;align-items:baseline;gap:12px;margin-bottom:2rem}
 .sec-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;color:var(--txt)}
 .sec-line{flex:1;height:1px;background:linear-gradient(to right,var(--pk3),transparent)}
 
-/* ── GRID FIX: CSS grid replaces flexbox for even, responsive card layout ── */
+/* ── GRID ── */
 .tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem}
 
-/* ── CARD FIX: full-width within grid cell, no flex sizing ── */
+/* ── CARD ── */
 .tcard{width:100%;background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1);border:1px solid rgba(232,24,109,0.07);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1),box-shadow 0.32s cubic-bezier(0.4,0,0.2,1);animation:fadeUp 0.5s ease both;position:relative}
 .tcard:hover{transform:translateY(-8px) scale(1.012);box-shadow:var(--sh3)}
-
-/* ── IMAGE WRAP FIX: aspect-ratio instead of fixed height ── */
 .tcard-img-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--pk4)}
-
 .tcard-img{width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
 .tcard:hover .tcard-img{transform:scale(1.09)}
 .tcard-vid-thumb{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
@@ -237,100 +261,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .adm-ctrl{position:absolute;top:10px;right:10px;display:flex;gap:5px;z-index:5}
 .acb{background:rgba(255,255,255,0.9);border:none;border-radius:8px;padding:5px 7px;cursor:pointer;font-size:13px;transition:var(--tr)}
 .acb:hover{transform:scale(1.12)}
-.vpm-overlay{
-  position:fixed;
-  top:0;left:0;right:0;bottom:0;
-  background:#000;
-  z-index:9000;
-  animation:fadeIn 0.15s ease;
-  padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px);
-}
-.vpm-video{
-  position:absolute;
-  top:0;left:0;
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  background:#000;
-  display:block;
-  outline:none;
-  opacity:0;
-  transition:opacity 0.3s ease;
-}
-.vpm-video.ready{ opacity:1; }
-.vpm-loading{
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:14px;
-  pointer-events:none;
-  transition:opacity 0.25s ease;
-  z-index:2;
-}
-.vpm-loading.gone{ opacity:0; pointer-events:none; }
-.vpm-spinner{
-  width:48px;height:48px;
-  border:3px solid rgba(255,255,255,0.15);
-  border-top-color:var(--pk);
-  border-radius:50%;
-  animation:spin 0.85s linear infinite;
-}
-.vpm-load-text{
-  font-size:0.85rem;
-  color:rgba(255,255,255,0.55);
-  font-family:'DM Sans',sans-serif;
-  text-align:center;
-  line-height:1.5;
-  max-width:220px;
-}
-.vpm-close{
-  position:absolute;
-  top:16px;right:16px;
-  z-index:10;
-  width:44px;height:44px;
-  border-radius:50%;
-  background:rgba(0,0,0,0.7);
-  border:1.5px solid rgba(255,255,255,0.3);
-  color:#fff;
-  font-size:20px;
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
-}
-.vpm-close:active{ background:var(--pk); }
-.vpm-error{
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  display:flex;flex-direction:column;align-items:center;gap:14px;
-  z-index:3;text-align:center;
-}
-.vpm-err-text{ font-size:0.85rem;color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif; }
-.vpm-btn{
-  padding:11px 26px;border-radius:var(--r3);border:none;
-  font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:700;
-  cursor:pointer;touch-action:manipulation;
-}
-.vpm-btn.primary{ background:var(--pk);color:#fff; }
-.vpm-btn.ghost{ background:transparent;color:rgba(255,255,255,0.7);border:1.5px solid rgba(255,255,255,0.25);margin-top:4px; }
-.vpm-title{
-  position:absolute;
-  bottom:0;left:0;right:0;
-  padding:20px 20px 16px;
-  background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,transparent 100%);
-  color:#fff;
-  font-family:'Cormorant Garamond',serif;
-  font-size:1.1rem;font-weight:600;
-  pointer-events:none;
-  z-index:2;
-  transition:opacity 0.3s ease;
-}
-.vpm-title.gone{ opacity:0; }
+
+/* ── VIDEO MODALS ── */
+.vpm-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:9000;animation:fadeIn 0.15s ease;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.vpm-video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;background:#000;display:block;outline:none;opacity:0;transition:opacity 0.3s ease}
+.vpm-video.ready{opacity:1}
+.vpm-loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:14px;pointer-events:none;transition:opacity 0.25s ease;z-index:2}
+.vpm-loading.gone{opacity:0;pointer-events:none}
+.vpm-spinner{width:48px;height:48px;border:3px solid rgba(255,255,255,0.15);border-top-color:var(--pk);border-radius:50%;animation:spin 0.85s linear infinite}
+.vpm-load-text{font-size:0.85rem;color:rgba(255,255,255,0.55);font-family:'DM Sans',sans-serif;text-align:center;line-height:1.5;max-width:220px}
+.vpm-close{position:absolute;top:16px;right:16px;z-index:10;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,0.7);border:1.5px solid rgba(255,255,255,0.3);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.vpm-close:active{background:var(--pk)}
+.vpm-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:14px;z-index:3;text-align:center}
+.vpm-err-text{font-size:0.85rem;color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif}
+.vpm-btn{padding:11px 26px;border-radius:var(--r3);border:none;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;touch-action:manipulation}
+.vpm-btn.primary{background:var(--pk);color:#fff}
+.vpm-btn.ghost{background:transparent;color:rgba(255,255,255,0.7);border:1.5px solid rgba(255,255,255,0.25);margin-top:4px}
+.vpm-title{position:absolute;bottom:0;left:0;right:0;padding:20px 20px 16px;background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,transparent 100%);color:#fff;font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;pointer-events:none;z-index:2;transition:opacity 0.3s ease}
+.vpm-title.gone{opacity:0}
 .vcd-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:8000;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.18s ease}
 .vcd-box{background:#fff;border-radius:22px 22px 0 0;padding:1.6rem 1.6rem 2.4rem;width:100%;max-width:480px;animation:fadeUp 0.25s ease;position:relative}
 .vcd-handle{width:40px;height:4px;border-radius:4px;background:rgba(0,0,0,0.12);margin:0 auto 1.2rem}
@@ -346,6 +294,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .vcd-btn-icon{font-size:1.4rem}
 .vcd-btn.preview{background:var(--pk4);border:1.5px solid var(--pk3);color:var(--pk2)}
 .vcd-btn.fullscreen{background:linear-gradient(135deg,var(--pk),var(--pk2));color:#fff}
+
+/* ── MODALS ── */
 .overlay{position:fixed;inset:0;background:rgba(10,0,18,0.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.2s ease}
 .modal{background:#fff;border-radius:20px;padding:2.2rem;width:100%;max-width:440px;box-shadow:0 30px 80px rgba(0,0,0,0.28);animation:fadeUp 0.3s ease;position:relative;max-height:90vh;overflow-y:auto}
 .modal.wide{max-width:580px}
@@ -366,6 +316,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .hr{border:none;border-top:1px solid var(--pk3);margin:1.2rem 0}
 .slink{text-align:center;font-size:0.83rem;color:var(--txt3)}
 .slink a{color:var(--pk);cursor:pointer;font-weight:700;text-decoration:none}
+
+/* ── ADMIN ── */
 .adm{max-width:1200px;margin:0 auto;padding:2rem}
 .adm-hdr{background:linear-gradient(135deg,#1a0a12,#3d0020);border-radius:var(--r);padding:1.8rem 2rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;box-shadow:var(--sh2)}
 .adm-hdr h2{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:700;color:#fff;margin-bottom:3px}
@@ -401,32 +353,43 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .uemail{font-size:0.88rem;font-weight:500;color:var(--txt)}
 .utime{font-size:0.75rem;color:var(--txt3);margin-top:1px}
 .ucnt{font-size:0.75rem;background:var(--pk4);color:var(--pk2);padding:3px 10px;border-radius:var(--r3);font-weight:600}
+
+/* ── EMPTY STATE ── */
 .empty{text-align:center;padding:4rem 2rem}
 .empty-icon{font-size:3.5rem;margin-bottom:1rem;animation:pulse 2.5s infinite}
 .empty p{color:var(--txt3);font-size:0.95rem}
+
+/* ── TOASTS ── */
 .toast-wrap{position:fixed;bottom:2rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast{background:linear-gradient(135deg,#1a0a12,#3d0020);color:#fff;padding:12px 18px;border-radius:var(--r2);font-size:0.82rem;box-shadow:0 8px 28px rgba(0,0,0,0.28);animation:slideDown 0.3s ease;border-left:3px solid var(--pk);max-width:260px}
-.footer{background:linear-gradient(135deg,#1a0a12,#3d0020);padding:3rem 2rem;text-align:center;color:rgba(255,255,255,0.5);font-size:0.82rem;margin-top:2rem}
+
+/* ── FOOTER ── */
+.footer{background:linear-gradient(135deg,#0a0005,#1a0a12,#0a0005);padding:3rem 2rem;text-align:center;color:rgba(255,255,255,0.4);font-size:0.82rem;margin-top:2rem;border-top:1px solid rgba(232,24,109,0.08)}
 .footer-brand{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--pk3);margin-bottom:0.5rem}
 .footer-brand span{color:var(--gd2)}
-.gold-div{width:60px;height:2px;background:linear-gradient(to right,transparent,var(--gd2),transparent);margin:0 auto 1.2rem}
+.gold-div{width:60px;height:1px;background:linear-gradient(to right,transparent,var(--gd2),transparent);margin:0 auto 1.2rem}
 .flinks{display:flex;justify-content:center;gap:2rem;margin:1.2rem 0;flex-wrap:wrap}
-.flink{color:rgba(255,255,255,0.4);transition:color 0.2s;text-decoration:none;cursor:pointer;font-size:0.82rem}
+.flink{color:rgba(255,255,255,0.3);transition:color 0.2s;text-decoration:none;cursor:pointer;font-size:0.82rem}
 .flink:hover{color:var(--pk3)}
-.loading-overlay{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:1rem}
-.spinner{width:38px;height:38px;border:3px solid var(--pk3);border-top-color:var(--pk);border-radius:50%;animation:spin 0.7s linear infinite}
 
-/* ── RESPONSIVE BREAKPOINTS ── */
+/* ── LOADING ── */
+.loading-overlay{display:flex;align-items:center;justify-content:center;min-height:100svh;flex-direction:column;gap:1rem;background:#000}
+.spinner{width:38px;height:38px;border:3px solid rgba(232,24,109,0.2);border-top-color:var(--pk);border-radius:50%;animation:spin 0.7s linear infinite}
+
+/* ── RESPONSIVE ── */
 @media(max-width:768px){.tgrid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}}
 @media(max-width:480px){.tgrid{grid-template-columns:1fr}}
 @media(max-width:680px){
-  .hdr-in{padding:0 1rem}.hero{padding:3.5rem 1rem 3rem}
-  .hero-stats{gap:1.5rem}.sep{display:none}
+  .hdr-in{padding:0 1rem}
+  .hero-inner{padding:5rem 1.2rem 3.5rem}
+  .hstat{padding:0 1.2rem}
   .fbar{padding:0.7rem 1rem}.main{padding:2rem 1rem 3rem}
   .adm{padding:1rem}.adm-hdr{padding:1.2rem}.adm-tabs{flex-direction:column}
+  .hero-vid-badge{display:none}
 }
 `;
 
+// ─── ICONS ────────────────────────────────────────────────────────────────────
 const WaIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
@@ -445,6 +408,7 @@ const IgIcon = () => (
   </svg>
 );
 
+// ─── TOAST HOOK ───────────────────────────────────────────────────────────────
 function useToast() {
   const [toasts, setToasts] = useState([]);
   const push = useCallback((msg) => {
@@ -455,9 +419,7 @@ function useToast() {
   return { toasts, push };
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-//  VIDEO CHOICE BOTTOM SHEET
-// ═══════════════════════════════════════════════════════════════════════════════
+// ─── VIDEO CHOICE BOTTOM SHEET ────────────────────────────────────────────────
 function VideoChoiceDialog({ title, onClose, onPreview, onOpenInBrowser }) {
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -490,9 +452,7 @@ function VideoChoiceDialog({ title, onClose, onPreview, onOpenInBrowser }) {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-//  VIDEO PREVIEW MODAL
-// ═══════════════════════════════════════════════════════════════════════════════
+// ─── VIDEO PREVIEW MODAL ──────────────────────────────────────────────────────
 function VideoPreviewModal({ url, title, onClose }) {
   const videoRef            = useRef(null);
   const [status, setStatus] = useState("loading");
@@ -515,19 +475,13 @@ function VideoPreviewModal({ url, title, onClose }) {
     const vid = videoRef.current;
     if (vid) {
       vid.muted = true;
-      vid.play().catch(() => {
-        console.log("Autoplay blocked");
-      });
+      vid.play().catch(() => {});
     }
   }, []);
 
   const handleClose = () => {
     const vid = videoRef.current;
-    if (vid) {
-      vid.pause();
-      vid.src = "";
-      vid.load();
-    }
+    if (vid) { vid.pause(); vid.src = ""; vid.load(); }
     onClose();
   };
 
@@ -580,9 +534,7 @@ function VideoPreviewModal({ url, title, onClose }) {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-//  TEMPLATE CARD
-// ═══════════════════════════════════════════════════════════════════════════════
+// ─── TEMPLATE CARD ────────────────────────────────────────────────────────────
 function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }) {
   const [videoMode, setVideoMode] = useState(null);
   const mobile = isMobile();
@@ -975,26 +927,72 @@ function HomePage({ templates, session: sess, isAdmin, onEdit, onDelete, onToggl
 
   return (
     <>
+      {/* ── CINEMATIC BLACK VIDEO HERO ── */}
       <section className="hero">
-        <div className="hero-tag">✦ Premium Digital Invitations ✦</div>
-        <h1 className="hero-h1">Beautiful <em>Invitations</em><br />for Every <span className="gold-word">Celebration</span></h1>
-        <p className="hero-p">Handcrafted digital invitation designs for weddings, housewarmings &amp; birthdays — share the joy, beautifully.</p>
-        <div className="hero-cta">
-          {!sess ? (
-            <button className="btn-hero primary" onClick={onLoginClick}>Browse Designs →</button>
-          ) : (
-            <button className="btn-hero primary" onClick={() => document.getElementById("tgrid")?.scrollIntoView({ behavior: "smooth" })}>Explore Designs →</button>
-          )}
-          <a className="btn-hero secondary" href={`https://wa.me/${WA}`} target="_blank" rel="noreferrer">WhatsApp Us</a>
+        {/* Background video — replace HERO_VIDEO_URL with your actual video */}
+        <video
+          className="hero-vbg"
+          autoPlay
+          muted
+          loop
+          playsInline
+          src={HERO_VIDEO_URL}
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+        />
+        {/* Dark gradient overlay */}
+        <div className="hero-overlay" />
+        {/* Pink radial glow */}
+        <div className="hero-overlay2" />
+        {/* Noise texture */}
+        <div className="hero-noise" />
+
+        {/* Content */}
+        <div className="hero-inner">
+          <div className="hero-tag">✦ Premium Digital Invitations ✦</div>
+          <h1 className="hero-h1">Beautiful <em>Invitations</em></h1>
+          <div className="hero-h1-gold">for Every Celebration</div>
+          <p className="hero-p">
+            Handcrafted digital invitation designs for weddings, housewarmings &amp; birthdays — share the joy, beautifully.
+          </p>
+          <div className="hero-cta">
+            {!sess ? (
+              <button className="btn-hero primary" onClick={onLoginClick}>Browse Designs →</button>
+            ) : (
+              <button
+                className="btn-hero primary"
+                onClick={() => document.getElementById("tgrid")?.scrollIntoView({ behavior: "smooth" })}
+              >
+                Explore Designs →
+              </button>
+            )}
+            <a className="btn-hero secondary" href={`https://wa.me/${WA}`} target="_blank" rel="noreferrer">
+              WhatsApp Us
+            </a>
+          </div>
+          <div className="hero-stats">
+            <div className="hstat">
+              <div className="hstat-n">{templates.filter((t) => t.is_active).length}+</div>
+              <div className="hstat-l">Designs</div>
+            </div>
+            <div className="sep" />
+            <div className="hstat"><div className="hstat-n">3</div><div className="hstat-l">Categories</div></div>
+            <div className="sep" />
+            <div className="hstat"><div className="hstat-n">100%</div><div className="hstat-l">Custom</div></div>
+            <div className="sep" />
+            <div className="hstat"><div className="hstat-n">Fast</div><div className="hstat-l">Delivery</div></div>
+          </div>
         </div>
-        <div className="hero-stats">
-          <div className="hstat"><div className="hstat-n">{templates.filter((t) => t.is_active).length}+</div><div className="hstat-l">Designs</div></div>
-          <div className="sep" />
-          <div className="hstat"><div className="hstat-n">3</div><div className="hstat-l">Categories</div></div>
-          <div className="sep" />
-          <div className="hstat"><div className="hstat-n">100%</div><div className="hstat-l">Custom</div></div>
-          <div className="sep" />
-          <div className="hstat"><div className="hstat-n">Fast</div><div className="hstat-l">Delivery</div></div>
+
+        {/* Scroll hint */}
+        <div className="hero-scroll">
+          <div className="hero-scroll-line" />
+          scroll
+        </div>
+
+        {/* Live video badge */}
+        <div className="hero-vid-badge">
+          <div className="hero-vid-dot" />
+          LIVE PREVIEW
         </div>
       </section>
 
@@ -1064,9 +1062,17 @@ export default function App() {
   const [sess, setSess]           = useState(() => session.get());
   const [page, setPage]           = useState(() => session.get()?.role === "admin" ? "admin" : "home");
   const [showLogin, setShowLogin] = useState(false);
+  const [scrolled, setScrolled]   = useState(false);
   const { toasts, push: toast }   = useToast();
   const channelRef                = useRef(null);
   const isAdmin                   = sess?.role === "admin";
+
+  // Track scroll for header style transition
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     fetchTemplates(isAdmin).then((data) => { setTemplates(data); setLoading(false); });
@@ -1118,7 +1124,9 @@ export default function App() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <header className="hdr">
+
+      {/* ── HEADER — transparent over hero, solid after scroll ── */}
+      <header className={`hdr${scrolled || page === "admin" ? " scrolled" : ""}`}>
         <div className="hdr-in">
           <div className="logo" onClick={() => setPage("home")}>
             <div className="logo-mark">🌸</div>
@@ -1145,14 +1153,23 @@ export default function App() {
       {loading ? (
         <div className="loading-overlay">
           <div className="spinner" />
-          <p style={{ color: "var(--txt3)", fontSize: "0.9rem" }}>Loading designs…</p>
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.9rem", fontFamily: "'DM Sans',sans-serif" }}>
+            Loading designs…
+          </p>
         </div>
       ) : page === "admin" && isAdmin ? (
         <AdminDash templates={templates} onAdd={addT} onEdit={editT} onDelete={delT} onToggle={togT} onLogout={handleLogout} />
       ) : (
-        <HomePage templates={templates} session={sess} isAdmin={isAdmin}
-          onEdit={editT} onDelete={delT} onToggle={togT}
-          onLoginClick={() => setShowLogin(true)} toast={toast} />
+        <HomePage
+          templates={templates}
+          session={sess}
+          isAdmin={isAdmin}
+          onEdit={editT}
+          onDelete={delT}
+          onToggle={togT}
+          onLoginClick={() => setShowLogin(true)}
+          toast={toast}
+        />
       )}
 
       <footer className="footer">
