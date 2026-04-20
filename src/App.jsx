@@ -438,7 +438,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .contact-gold-bar{width:48px;height:3px;background:linear-gradient(to right,var(--gd),var(--gd2));border-radius:4px;margin:1rem 0}
 .contact-left p{font-size:0.95rem;color:var(--txt3);line-height:1.7;max-width:340px;margin-bottom:2rem}
 .contact-info{display:flex;flex-direction:column;gap:1rem;margin-bottom:2rem}
-.cinfo-row{display:flex;align-items:center;gap:14px;cursor:pointer;transition:var(--tr)}.cinfo-row:hover .cinfo-icon{transform:scale(1.1)}
+.cinfo-row{display:flex;align-items:center;gap:14px}
 .cinfo-icon{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--pk4),var(--pk3));display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;border:1px solid rgba(232,24,109,0.14)}
 .cinfo-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--txt3)}
 .cinfo-val{font-size:0.9rem;font-weight:600;color:var(--txt)}
@@ -904,10 +904,10 @@ function TplForm({ tpl, onClose, onSave }) {
 
 
 // ─── BROCHURE DOWNLOAD ────────────────────────────────────────────────────────
-function downloadBrochure(toastFn) {
-  toastFn("📄 Opening brochure in new tab — use Ctrl+P / Print to save as PDF!");
-  // Opens in a new tab so it works on all browsers including mobile
-  // User can File > Print > Save as PDF
+function downloadBrochure(toast) {
+  toast("📄 Preparing brochure...");
+  // Build a simple but beautiful HTML brochure and trigger download as .html
+  // (Works without any server — opens in browser, printable as PDF)
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1001,22 +1001,16 @@ function downloadBrochure(toastFn) {
 </body>
 </html>`;
 
-  const win = window.open("", "_blank");
-  if (win) {
-    win.document.write(html);
-    win.document.close();
-    toastFn("✅ Brochure opened! Press Ctrl+P (or Share → Print) to save as PDF.");
-  } else {
-    // Fallback: blob download if popup was blocked
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href = url; a.download = "Chitrakala_Brochure.html";
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-    toastFn("✅ Brochure downloaded!");
-  }
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = "Chitrakala_Invitations_Brochure.html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  toast("✅ Brochure downloaded! Open it in your browser to print as PDF.");
 }
 
 // ─── CONTACT SECTION ──────────────────────────────────────────────────────────
@@ -1030,38 +1024,18 @@ function ContactSection({ toast }) {
 
   const submit = async () => {
     setErr("");
-    if (!form.name.trim())  return setErr("Please enter your name.");
-    if (!form.phone.trim()) return setErr("Please enter your phone / WhatsApp number.");
-    if (!form.service)      return setErr("Please select a service.");
+    if (!form.name.trim())    return setErr("Please enter your name.");
+    if (!form.phone.trim())   return setErr("Please enter your phone / WhatsApp number.");
+    if (!form.service)        return setErr("Please select a service.");
     setSub(true);
-
-    // 1. Save to Supabase (best-effort — don't block WhatsApp if it fails)
-    let savedToDb = false;
     try {
       await insertEnquiry(form);
-      savedToDb = true;
+      setDone(true);
+      toast("✅ Enquiry submitted! We'll reach out soon 🌸");
     } catch (e) {
-      console.error("Supabase insert failed:", e.message);
-    }
-
-    // 2. Build WhatsApp pre-filled message and open it
-    const waText = [
-      `Hi! I'd like to enquire about a ${form.service}.`,
-      `Name: ${form.name}`,
-      `Phone: ${form.phone}`,
-      form.email      ? `Email: ${form.email}` : null,
-      form.event_date ? `Event Date: ${form.event_date}` : null,
-      form.message    ? `Details: ${form.message}` : null,
-    ].filter(Boolean).join("\n");
-
-    window.open(`https://wa.me/919840903746?text=${encodeURIComponent(waText)}`, "_blank", "noopener,noreferrer");
-
-    setSub(false);
-    setDone(true);
-    setForm(blank); // reset form immediately so it's ready for next use
-    toast(savedToDb ? "✅ Request saved & WhatsApp opened! 🌸" : "📱 WhatsApp opened! (Tip: run the SQL to enable DB storage)");
-    // Auto-reset success banner after 6 seconds so form is always accessible
-    setTimeout(() => setDone(false), 6000);
+      setErr("Something went wrong. Please try WhatsApp directly.");
+      toast("❌ Submission failed. Please try WhatsApp.");
+    } finally { setSub(false); }
   };
 
   return (
@@ -1073,14 +1047,14 @@ function ContactSection({ toast }) {
           <div className="contact-gold-bar" />
           <p>Have a special occasion coming up? Share your details and we'll craft something truly unforgettable just for you.</p>
           <div className="contact-info">
-            <a className="cinfo-row" href="mailto:priyasaki190@gmail.com" style={{textDecoration:"none"}}>
+            <div className="cinfo-row">
               <div className="cinfo-icon">✉️</div>
               <div><div className="cinfo-label">Email Us</div><div className="cinfo-val">priyasaki190@gmail.com</div></div>
-            </a>
-            <a className="cinfo-row" href="https://wa.me/919840903746" target="_blank" rel="noreferrer" style={{textDecoration:"none"}}>
+            </div>
+            <div className="cinfo-row">
               <div className="cinfo-icon">💬</div>
-              <div><div className="cinfo-label">WhatsApp</div><div className="cinfo-val" style={{color:"#25D366",fontWeight:700}}>+91 98409 03746 →</div></div>
-            </a>
+              <div><div className="cinfo-label">WhatsApp</div><div className="cinfo-val">Chat With Us</div></div>
+            </div>
             <div className="cinfo-row">
               <div className="cinfo-icon">⏱️</div>
               <div><div className="cinfo-label">Response Time</div><div className="cinfo-val">Within 24 Hours</div></div>
@@ -1093,59 +1067,63 @@ function ContactSection({ toast }) {
 
         {/* RIGHT — form */}
         <div className="contact-form">
-          {done && (
-            <div style={{background:"linear-gradient(135deg,#e8f5e9,#f1f8e9)",border:"1.5px solid #a5d6a7",borderRadius:"var(--r2)",padding:"14px 18px",marginBottom:"1rem",display:"flex",alignItems:"center",gap:12}}>
-              <span style={{fontSize:"1.4rem"}}>🌸</span>
-              <div>
-                <div style={{fontWeight:700,color:"#2e7d32",fontSize:"0.92rem"}}>Request Received!</div>
-                <div style={{fontSize:"0.8rem",color:"#388e3c"}}>WhatsApp opened. We'll reply within 24 hours.</div>
+          {done ? (
+            <div className="cf-success">
+              <div className="cf-success-icon">🌸</div>
+              <h3>Request Received!</h3>
+              <p>Thank you! We'll get back to you within 24 hours.</p>
+              <button className="cf-submit" style={{ marginTop: 12, width: "auto", padding: "10px 28px" }}
+                onClick={() => { setDone(false); setForm(blank); }}>
+                Submit Another
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="cf-grid">
+                <div className="cf-field">
+                  <label className="cf-label">Your Name *</label>
+                  <input className="cf-input" placeholder="Priya Sharma" value={form.name}
+                    onChange={e => set("name", e.target.value)} />
+                </div>
+                <div className="cf-field">
+                  <label className="cf-label">Phone / WhatsApp *</label>
+                  <input className="cf-input" placeholder="+91 98765 43210" value={form.phone}
+                    onChange={e => set("phone", e.target.value)} />
+                </div>
+                <div className="cf-field cf-full">
+                  <label className="cf-label">Email Address</label>
+                  <input className="cf-input" type="email" placeholder="you@example.com" value={form.email}
+                    onChange={e => set("email", e.target.value)} />
+                </div>
+                <div className="cf-field cf-full">
+                  <label className="cf-label">Service Required *</label>
+                  <select className="cf-select" value={form.service} onChange={e => set("service", e.target.value)}>
+                    <option value="">Select a service...</option>
+                    <option value="Wedding Invitation">💍 Wedding Invitation</option>
+                    <option value="Housewarming Invitation">🏡 Housewarming Invitation</option>
+                    <option value="Birthday Invitation">🎂 Birthday Invitation</option>
+                    <option value="Save the Date">📅 Save the Date</option>
+                    <option value="Other">✨ Other / Custom</option>
+                  </select>
+                </div>
+                <div className="cf-field cf-full">
+                  <label className="cf-label">Event Date</label>
+                  <input className="cf-input" type="date" value={form.event_date}
+                    onChange={e => set("event_date", e.target.value)} />
+                </div>
+                <div className="cf-field cf-full">
+                  <label className="cf-label">Your Message</label>
+                  <textarea className="cf-textarea"
+                    placeholder="Tell us about your event — theme, colors, special details..."
+                    value={form.message} onChange={e => set("message", e.target.value)} />
+                </div>
               </div>
-              <button onClick={() => setDone(false)} style={{marginLeft:"auto",background:"none",border:"none",cursor:"pointer",fontSize:"1rem",color:"#888"}}>✕</button>
-            </div>
+              {err && <div className="errmsg" style={{ marginBottom: 8 }}>⚠️ {err}</div>}
+              <button className="cf-submit" onClick={submit} disabled={submitting}>
+                {submitting ? "Sending..." : "✦ SEND MY REQUEST"}
+              </button>
+            </>
           )}
-          <div className="cf-grid">
-            <div className="cf-field">
-              <label className="cf-label">Your Name *</label>
-              <input className="cf-input" placeholder="Priya Sharma" value={form.name}
-                onChange={e => set("name", e.target.value)} />
-            </div>
-            <div className="cf-field">
-              <label className="cf-label">Phone / WhatsApp *</label>
-              <input className="cf-input" placeholder="+91 98765 43210" value={form.phone}
-                onChange={e => set("phone", e.target.value)} />
-            </div>
-            <div className="cf-field cf-full">
-              <label className="cf-label">Email Address</label>
-              <input className="cf-input" type="email" placeholder="you@example.com" value={form.email}
-                onChange={e => set("email", e.target.value)} />
-            </div>
-            <div className="cf-field cf-full">
-              <label className="cf-label">Service Required *</label>
-              <select className="cf-select" value={form.service} onChange={e => set("service", e.target.value)}>
-                <option value="">Select a service...</option>
-                <option value="Wedding Invitation">💍 Wedding Invitation</option>
-                <option value="Housewarming Invitation">🏡 Housewarming Invitation</option>
-                <option value="Birthday Invitation">🎂 Birthday Invitation</option>
-                <option value="Save the Date">📅 Save the Date</option>
-                <option value="Other">✨ Other / Custom</option>
-              </select>
-            </div>
-            <div className="cf-field cf-full">
-              <label className="cf-label">Event Date</label>
-              <input className="cf-input" type="date" value={form.event_date}
-                onChange={e => set("event_date", e.target.value)} />
-            </div>
-            <div className="cf-field cf-full">
-              <label className="cf-label">Your Message</label>
-              <textarea className="cf-textarea"
-                placeholder="Tell us about your event — theme, colors, special details..."
-                value={form.message} onChange={e => set("message", e.target.value)} />
-            </div>
-          </div>
-          {err && <div className="errmsg" style={{ marginBottom: 8 }}>⚠️ {err}</div>}
-          <button className="cf-submit" onClick={submit} disabled={submitting}>
-            {submitting ? "Sending..." : "✦ SEND MY REQUEST"}
-          </button>
         </div>
       </div>
     </section>
