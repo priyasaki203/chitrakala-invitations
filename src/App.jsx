@@ -19,8 +19,8 @@ emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
 const _A   = { e: "priyasaki190@gmail.com", p: "priyasaki@9840" };
 const WA   = "919840903746";
-const MAIL = "priyasaki190@gmail.com";
-const IG   = "https://instagram.com/priyasaki__19";
+const MAIL = "workiz986@gmail.com";
+const IG = "https://www.instagram.com/work_iix";
 
 function isMobile() {
   return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
