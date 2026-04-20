@@ -213,11 +213,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 
 .tcard-img{width:100%;height:100%;object-fit:cover;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
 .tcard:hover .tcard-img{transform:scale(1.09)}
-.tcard-vid-thumb{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1)}
+.tcard-vid-thumb{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1);pointer-events:none}
 .tcard:hover .tcard-vid-thumb{transform:scale(1.09)}
 .tcard-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(26,10,18,0.55) 0%,transparent 55%);opacity:0;transition:opacity 0.3s;pointer-events:none}
 .tcard:hover .tcard-ov{opacity:1}
-.play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:1}
 .play-btn{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.92);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(0,0,0,0.28)}
 .play-arrow{width:0;height:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:20px solid var(--pk);margin-left:4px}
 .vid-badge{position:absolute;bottom:10px;left:12px;background:rgba(0,0,0,0.62);color:#fff;font-size:0.64rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:0.6px}
@@ -417,7 +417,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--pk5);color:var(--txt);ove
 .spinner{width:38px;height:38px;border:3px solid var(--pk3);border-top-color:var(--pk);border-radius:50%;animation:spin 0.7s linear infinite}
 
 /* ── RESPONSIVE BREAKPOINTS ── */
-@media(max-width:768px){.tgrid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}}
+@media(max-width:768px){.tgrid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.play-btn{width:62px;height:62px}}
 @media(max-width:480px){.tgrid{grid-template-columns:1fr}}
 @media(max-width:680px){
   .hdr-in{padding:0 1rem}.hero{padding:3.5rem 1rem 3rem}
@@ -589,33 +589,33 @@ function TCard({ tpl, isAdmin, onEdit, onDelete, onToggle, delay, onEmailClick }
   const waMsg  = encodeURIComponent(`Hi, I'm interested in this invitation template: ${tpl.title}`);
   const isVid  = isVideoUrl(tpl.image);
 
+  // On mobile: skip the "Play Here / Open in Browser" choice dialog, go straight to the player
+  const handleCardClick = () => { if (isVid) setVideoMode(mobile ? "preview" : "choice"); };
+
   return (
     <>
       <div className="tcard" style={{ animationDelay: `${delay}ms`, opacity: !tpl.is_active && isAdmin ? 0.58 : 1 }}>
         <div
           className="tcard-img-wrap"
-          onClick={() => isVid && setVideoMode("choice")}
+          onClick={handleCardClick}
           style={{ cursor: isVid ? "pointer" : "default" }}
         >
           {isVid ? (
             <>
-              {mobile ? (
-                <div style={{
-                  width: "100%", height: "100%",
-                  background: "linear-gradient(135deg,#2a0610 0%,#1a0a12 45%,#38101e 100%)",
-                  display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "12px",
-                }}>
-                  <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(232,24,109,0.88)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 24px rgba(232,24,109,0.5)" }}>
-                    <div style={{ width: 0, height: 0, borderTop: "13px solid transparent", borderBottom: "13px solid transparent", borderLeft: "22px solid #fff", marginLeft: "5px" }} />
-                  </div>
-                  <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.65)", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase" }}>Tap to Play</div>
-                </div>
-              ) : (
-                <video className="tcard-vid-thumb" src={tpl.image} muted preload="metadata" playsInline
-                  onLoadedMetadata={(e) => { try { e.target.currentTime = 0.1; } catch {} }} />
-              )}
+              {/* Real video frame shown as thumbnail on ALL devices — no dark placeholder */}
+              <video
+                className="tcard-vid-thumb"
+                src={tpl.image}
+                muted
+                preload="metadata"
+                playsInline
+                onLoadedMetadata={(e) => { try { e.target.currentTime = 0.5; } catch {} }}
+              />
               <div className="tcard-ov" />
-              {!mobile && <div className="play-overlay"><div className="play-btn"><div className="play-arrow" /></div></div>}
+              {/* Play button overlay visible on all devices */}
+              <div className="play-overlay">
+                <div className="play-btn"><div className="play-arrow" /></div>
+              </div>
               <span className="vid-badge">▶ VIDEO</span>
             </>
           ) : (
